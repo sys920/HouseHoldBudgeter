@@ -98,5 +98,11 @@ namespace HouseholdBudgeter.Models
         [Display(Name = "Confirm new password")]
         [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
+
+        [Required]
+        public string Code { get; set; }
+
+        [Required]
+        public string Email { get; set; }
     }
 }

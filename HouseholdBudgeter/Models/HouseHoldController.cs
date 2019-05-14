@@ -42,14 +42,7 @@ namespace HouseholdBudgeter.Models
            
             return Ok("Create sucessfully!");
         }
-
-        //[Authorize]
-        [Route("GetAll")]
-        public IHttpActionResult GetAll()
-        {
-           
-            return Ok();
-        }
+               
 
     }
 }

@@ -27,16 +27,20 @@ namespace HouseholdBudgeter.Controllers
         private const string LocalLoginProvider = "Local";
         private ApplicationUserManager _userManager;
         private CustomEmailService CustomEmailService;
-
+        private ApplicationDbContext DbContext;
         public AccountController()
         {
+            DbContext = new ApplicationDbContext();
+            CustomEmailService = new CustomEmailService();
         }
+
 
         public AccountController(ApplicationUserManager userManager,
             ISecureDataFormat<AuthenticationTicket> accessTokenFormat)
         {
             UserManager = userManager;
             AccessTokenFormat = accessTokenFormat;
+
         }
 
         public ApplicationUserManager UserManager
@@ -137,6 +141,7 @@ namespace HouseholdBudgeter.Controllers
         }
 
         // POST api/Account/SetPassword
+        [AllowAnonymous]
         [Route("SetPassword")]
         public async Task<IHttpActionResult> SetPassword(SetPasswordBindingModel model)
         {
@@ -145,7 +150,17 @@ namespace HouseholdBudgeter.Controllers
                 return BadRequest(ModelState);
             }
 
-            IdentityResult result = await UserManager.AddPasswordAsync(User.Identity.GetUserId(), model.NewPassword);
+            var user = await UserManager.FindByEmailAsync(model.Email);
+
+            if(user ==null)
+            {
+                return NotFound();
+            }
+
+            UserManager<IdentityUser> userManager =  new UserManager<IdentityUser>(new UserStore<IdentityUser>());
+            userManager.RemovePassword(user.Id);
+
+            IdentityResult result = await UserManager.ResetPasswordAsync(user.Id, model.Code, model.NewPassword);        
 
             if (!result.Succeeded)
             {
@@ -153,26 +168,7 @@ namespace HouseholdBudgeter.Controllers
             }
 
             return Ok();
-        }
-        // New Add
-        // POST api/Account/SetPasswordByCode
-        [Route("SetPassword")]
-        public async Task<IHttpActionResult> SetPasswordByCode(SetPasswordBindingModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            IdentityResult result = await UserManager.AddPasswordAsync(User.Identity.GetUserId(), model.NewPassword);
-
-            if (!result.Succeeded)
-            {
-                return GetErrorResult(result);
-            }
-
-            return Ok();
-        }
+        }        
 
         // POST api/Account/AddExternalLogin
         [Route("AddExternalLogin")]
@@ -374,24 +370,19 @@ namespace HouseholdBudgeter.Controllers
                 if (user == null )
                 {
                     // Don't reveal that the user does not exist or is not confirmed
-                    return BadRequest("Email is not vaild");
-                    
+                    return BadRequest("Email is not vaild");                    
                 }
 
                 // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
                 // Send an email with this link
                 string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-
-                //var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
-                //await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + code + "\">here</a>");
-
-                MailAddress userEmailAddress = new MailAddress(model.Email,"User");
+                MailAddress userEmailAddress = new MailAddress(model.Email);
 
                 var message = new MailMessage();
                 message.From = new MailAddress("system@mailtrap.io", "MailSystem");
                 message.To.Add(userEmailAddress);
-                message.Subject = "The Authentification Code is ";
-                message.Body = "Your Code  is" + code;
+                message.Subject = "Authentification Code for password recover" ;
+                message.Body = "Your Code  is " + code;
 
                 CustomEmailService.Sending(message);
 
