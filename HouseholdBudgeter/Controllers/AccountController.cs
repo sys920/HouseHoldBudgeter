@@ -167,7 +167,7 @@ namespace HouseholdBudgeter.Controllers
                 return GetErrorResult(result);
             }
 
-            return Ok();
+            return Ok("Password was set sucessfully!");
         }        
 
         // POST api/Account/AddExternalLogin

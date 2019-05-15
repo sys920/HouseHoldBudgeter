@@ -13,11 +13,11 @@ namespace HouseholdBudgeter.Models
     // You can add profile data for the user by adding more properties to your ApplicationUser class, please visit https://go.microsoft.com/fwlink/?LinkID=317594 to learn more.
     public class ApplicationUser : IdentityUser
     {
-        public virtual List<HouseHold> HouserHolds { get; set; }     
+        public virtual List<HouseHold> HouseHolds { get; set; }
 
         public ApplicationUser()
         {
-            HouserHolds = new List<HouseHold>();
+            HouseHolds = new List<HouseHold>();
         }
 
         public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<ApplicationUser> manager, string authenticationType)
@@ -41,7 +41,11 @@ namespace HouseholdBudgeter.Models
         {
         }
 
-        public DbSet<HouseHold> HouserHolds { get; set; }
+        public DbSet<HouseHold> HouseHolds { get; set; }
+        public DbSet<Invitation> Invitations { get; set; }
+        public DbSet<HouseHoldUser> HouseHoldUsers { get; set; }
+
+        public DbSet<Category>Categories { get; set; }
 
         public static ApplicationDbContext Create()
         {
