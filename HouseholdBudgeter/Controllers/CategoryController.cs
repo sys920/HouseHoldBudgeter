@@ -17,9 +17,13 @@ namespace HouseholdBudgeter.Controllers
     public class CategoryController : ApiController
     {
         private ApplicationDbContext DbContext { get; set; }
+        private CheckUser CheckUser { get; set; }
+        
+
         public CategoryController()
         {
             DbContext = new ApplicationDbContext();
+            CheckUser = new CheckUser();
         }
 
         [HttpPost]
@@ -32,8 +36,8 @@ namespace HouseholdBudgeter.Controllers
             }
 
             var userId = User.Identity.GetUserId();
-            var OwnerOfHouseHold = DbContext.HouseHolds.Any(p => p.Id == id && p.OwnerId == userId);
-            if (!OwnerOfHouseHold)
+            var IsUserOnwerOfHouseHold = CheckUser.IsOwnerOfHouseHold(id, userId);
+            if (!IsUserOnwerOfHouseHold)
             {
                 return BadRequest("You are not the owner of this houseHolde");
             }
@@ -60,8 +64,8 @@ namespace HouseholdBudgeter.Controllers
             }
 
             var userId = User.Identity.GetUserId();
-            var OwnerOfHouseHold = DbContext.HouseHolds.Any(p => p.Id == id && p.OwnerId == userId);
-            if (!OwnerOfHouseHold)
+            var IsUserOnwerOfHouseHold = CheckUser.IsOwnerOfHouseHold(id, userId);           
+            if (!IsUserOnwerOfHouseHold)
             {
                 return BadRequest("You are not the owner of this houseHolde");
             }
@@ -86,14 +90,13 @@ namespace HouseholdBudgeter.Controllers
             }
 
             var userId = User.Identity.GetUserId();
-            var OwnerOfHouseHold = DbContext.HouseHolds.Any(p => p.Id == id && p.OwnerId == userId);
-            if (!OwnerOfHouseHold)
+            var IsUserOnwerOfHouseHold = CheckUser.IsOwnerOfHouseHold(id, userId);
+            if (!IsUserOnwerOfHouseHold)
             {
                 return BadRequest("You are not the owner of this houseHolde");
             }
 
             var model = DbContext.Categories.FirstOrDefault(p => p.Id == formData.CategoryId && p.HouseHoldId == id);
-
             DbContext.Categories.Remove(model);
             DbContext.SaveChanges();
 
@@ -108,18 +111,15 @@ namespace HouseholdBudgeter.Controllers
             {
                 return BadRequest(ModelState);
             }
-            var userId = User.Identity.GetUserId();
-            
-            var OwnerOFHouseHold = DbContext.HouseHolds.FirstOrDefault(p => p.Id == id && p.OwnerId == userId);
-            if (OwnerOFHouseHold == null)
-            {
-                var userExist = DbContext.HouseHoldUsers.Any(p => p.HouserholdId == id && p.UserId == userId);
-                if (!userExist)
-                {
-                    return BadRequest("Sorry, You are not member of this houseHold");
-                }
-            }
 
+            var userId = User.Identity.GetUserId();
+            var IsUserOnwerOfHouseHold = CheckUser.IsOwnerOfHouseHold(id, userId);
+            var IsUserMemberOfHouseHold = CheckUser.IsMemberOfHouseHold(id, userId);
+            
+            if(!(IsUserOnwerOfHouseHold || IsUserMemberOfHouseHold))
+            {
+                return BadRequest("Sorry, You are not member of this houseHold");
+            }            
 
             var categories = DbContext.Categories.Where(p => p.HouseHoldId == id).Select( p => new CategoryListViewModel
             {

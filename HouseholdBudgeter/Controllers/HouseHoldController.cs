@@ -19,11 +19,13 @@ namespace HouseholdBudgeter.Models
     {
         private ApplicationDbContext DbContext { get; set; }
         private CustomEmailService CustomEmailService { get; set; }
+        private CheckUser CheckUser { get; set; }
 
         public HouseHoldController()
         {
             DbContext = new ApplicationDbContext();
             CustomEmailService = new CustomEmailService();
+            CheckUser = new CheckUser();
         }
 
         [HttpPost]
@@ -39,9 +41,15 @@ namespace HouseholdBudgeter.Models
             houseHold.Name = formData.Name;
             houseHold.Desrcipton = formData.Description;
             houseHold.Created = DateTime.Now;
+            houseHold.OwnerId = User.Identity.GetUserId();
             houseHold.OwnerId = HttpContext.Current.User.Identity.GetUserId();
-
             DbContext.HouseHolds.Add(houseHold);
+            DbContext.SaveChanges();
+
+            var model = new HouseHoldUser();
+            model.HouserholdId = houseHold.Id;
+            model.UserId = houseHold.OwnerId;
+            DbContext.HouseHoldUsers.Add(model);
             DbContext.SaveChanges();
 
             return Ok("HouseHold was Created sucessfully!");
@@ -54,14 +62,14 @@ namespace HouseholdBudgeter.Models
             {
                 return BadRequest(ModelState);
             }
-
             var userId = User.Identity.GetUserId();
-            var houseHold = DbContext.HouseHolds.FirstOrDefault(p => p.Id == id && p.OwnerId == userId);
-            if (houseHold == null)
+            var IsUserOnwerOfHouseHold = CheckUser.IsOwnerOfHouseHold(id, userId);
+            if (!IsUserOnwerOfHouseHold)
             {
-                return NotFound();
+                return BadRequest("Sorry, You are not owner of this houseHold");
             }
 
+            var houseHold = DbContext.HouseHolds.FirstOrDefault(p => p.Id == id); 
             houseHold.Name = formData.Name;
             houseHold.Desrcipton = formData.Description;
             houseHold.Updated = DateTime.Now;
@@ -81,16 +89,16 @@ namespace HouseholdBudgeter.Models
             }
 
             var userId = User.Identity.GetUserId();
-            var houseHold = DbContext.HouseHolds.FirstOrDefault(p => p.Id == id && p.OwnerId == userId);
-            if (houseHold == null)
+            var IsUserOnwerOfHouseHold = CheckUser.IsOwnerOfHouseHold(id, userId);
+            if (!IsUserOnwerOfHouseHold)
             {
-                return NotFound();
-            }
+                return BadRequest("Sorry, you are not owner of this houseHold");
+            }                        
 
-            var userRegistered = DbContext.Users.Any(p => p.Email == formData.Email);
-            if (!userRegistered)
+            var isUserRegistered = DbContext.Users.Any(p => p.Email == formData.Email);
+            if (!isUserRegistered)
             {
-                return BadRequest("This email is not registered yet.");
+                return BadRequest("User email is not registered yet.");
             }
 
 
@@ -100,10 +108,12 @@ namespace HouseholdBudgeter.Models
                 return BadRequest("Already, You had invited this email");
             }
 
+
             var invitation = new Invitation();
             invitation.UserEmail = formData.Email;
             invitation.HouseHoldId = id;
 
+            var houseHold = DbContext.HouseHolds.FirstOrDefault(p => p.Id == id && p.OwnerId == userId);
             houseHold.Invitations.Add(invitation);
             DbContext.SaveChanges();
 
@@ -130,28 +140,31 @@ namespace HouseholdBudgeter.Models
             var userEmail = User.Identity.GetUserName();
             var userId = User.Identity.GetUserId();
 
-            var InvitationExist = DbContext.Invitations.FirstOrDefault(p => p.HouseHoldId == id && p.UserEmail == userEmail);
-            if (InvitationExist==null)
+            var invitationExist = DbContext.Invitations.Any(p => p.HouseHoldId == id && p.UserEmail == userEmail);
+            if (!invitationExist)
             {
-                return BadRequest("Sorry, You are not invited to this houseHold");
+                return BadRequest("Sorry, no invitation to this houseHold");
             }
 
-            var userExist = DbContext.HouseHoldUsers.Any(p => p.HouserholdId == id && p.UserId == userId);
-            if(userExist)
-            {
-                DbContext.Invitations.Remove(InvitationExist);
+            var invitation = DbContext.Invitations.FirstOrDefault(p => p.HouseHoldId == id && p.UserEmail == userEmail);
+
+            var IsUserMemberOfHouseHold = CheckUser.IsMemberOfHouseHold(id, userId);
+            if (IsUserMemberOfHouseHold)
+            {               
+                DbContext.Invitations.Remove(invitation);
                 DbContext.SaveChanges();
                 return BadRequest("You are already the member of this houseHold!");
             }
+
             var model = new HouseHoldUser();
             model.HouserholdId = id;
             model.UserId = userId;
 
             DbContext.HouseHoldUsers.Add(model);                     
-            DbContext.Invitations.Remove(InvitationExist);
+            DbContext.Invitations.Remove(invitation);
             DbContext.SaveChanges();
 
-            return Ok("Thank You, you joined this houserHold");
+            return Ok("Thank joining this houserHold");
         }
 
         [HttpGet]
@@ -159,17 +172,14 @@ namespace HouseholdBudgeter.Models
         public IHttpActionResult GetAllMemberOfHouserHold(int id)
         {
             var userId = User.Identity.GetUserId();
+           
+            var IsUserMemberOfHouseHold = CheckUser.IsMemberOfHouseHold(id, userId);
 
-            var OwnerOFHouseHold = DbContext.HouseHolds.FirstOrDefault(p => p.Id == id && p.OwnerId == userId);
-            if (OwnerOFHouseHold == null)
+            if (!IsUserMemberOfHouseHold)
             {
-                var userExist = DbContext.HouseHoldUsers.Any(p => p.HouserholdId == id && p.UserId == userId);
-                if (!userExist)
-                {
-                    return BadRequest("Sorry, You are not member of this houseHold");
-                }
-            }                  
-                       
+                return BadRequest("Sorry, You are not member of this houseHold");
+            }
+
             var model = DbContext.HouseHoldUsers.Where(p => p.HouserholdId == id).Select(p => new HouseHoldUserViewModel {
               UserEmail = p.User.Email,
               UserId = p.User.Id
@@ -183,16 +193,22 @@ namespace HouseholdBudgeter.Models
         public IHttpActionResult LeaveHouseHold(int id)
         {
             var userId = User.Identity.GetUserId();
-
-            var user = DbContext.HouseHoldUsers.FirstOrDefault(p => p.HouserholdId == id && p.UserId == userId);
-            if (user == null)
+            var IsUserMemberOfHouseHold = CheckUser.IsMemberOfHouseHold(id, userId);
+            if (!IsUserMemberOfHouseHold)
             {
                 return BadRequest("Sorry, You are not member of this houseHold");
             }
 
+            var IsUserOnwerOfHouseHold = CheckUser.IsOwnerOfHouseHold(id, userId);
+            if (IsUserOnwerOfHouseHold)
+            {
+                return BadRequest("Sorry, the owner of this houseHold can not leave!");
+            }
+
+            var user = DbContext.HouseHoldUsers.FirstOrDefault(p => p.HouserholdId == id && p.UserId == userId);
             DbContext.HouseHoldUsers.Remove(user);
             DbContext.SaveChanges();
-            return Ok("Thnakyou, You are not a member of this houseHold anymore!");
+            return Ok("Bye, You are not a member of this houseHold anymore!");
         }
 
         [HttpGet]
@@ -200,14 +216,14 @@ namespace HouseholdBudgeter.Models
         public IHttpActionResult DeleteHouseHold(int id)
         {
             var userId = User.Identity.GetUserId();
-
-            var OwnerOFHouseHold = DbContext.HouseHolds.FirstOrDefault(p => p.Id == id && p.OwnerId == userId);
-            if (OwnerOFHouseHold == null)
+            var IsUserOnwerOfHouseHold = CheckUser.IsOwnerOfHouseHold(id, userId);
+            if (!IsUserOnwerOfHouseHold)
             {
                 return BadRequest("Sorry, You are not the owner of this houseHold");
             }
-
-            DbContext.HouseHolds.Remove(OwnerOFHouseHold);
+           
+            var houseHold = DbContext.HouseHolds.FirstOrDefault(p => p.Id == id && p.OwnerId == userId);
+            DbContext.HouseHolds.Remove(houseHold);
             DbContext.SaveChanges();
             return Ok("This houseHold was deleted !");
         }
@@ -222,8 +238,8 @@ namespace HouseholdBudgeter.Models
             }
 
             var userId = User.Identity.GetUserId();
-            var OwnerOfHouseHold = DbContext.HouseHolds.Any(p => p.Id == id && p.OwnerId == userId);
-            if(!OwnerOfHouseHold)
+            var IsUserOnwerOfHouseHold = CheckUser.IsOwnerOfHouseHold(id, userId);
+            if (!IsUserOnwerOfHouseHold)
             {
                 return BadRequest("You are not the owner of this houseHolde");
             }

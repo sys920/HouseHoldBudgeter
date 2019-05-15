@@ -127,8 +127,7 @@ namespace HouseholdBudgeter.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
-            }
-
+            }         
             IdentityResult result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId(), model.OldPassword,
                 model.NewPassword);
             
@@ -137,7 +136,7 @@ namespace HouseholdBudgeter.Controllers
                 return GetErrorResult(result);
             }
 
-            return Ok();
+            return Ok("Password has changed successfully!");
         }
 
         // POST api/Account/SetPassword
@@ -354,7 +353,7 @@ namespace HouseholdBudgeter.Controllers
                 return GetErrorResult(result);
             }
 
-            return Ok();
+            return Ok("Register success");
         }
 
 
@@ -386,7 +385,7 @@ namespace HouseholdBudgeter.Controllers
 
                 CustomEmailService.Sending(message);
 
-                return Ok("The authentification Code was sented, Check you eamil");
+                return Ok("The authentification Code was sented, Check you email");
             }
 
             // If we got this far, something failed, redisplay form
