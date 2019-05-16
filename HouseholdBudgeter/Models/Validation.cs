@@ -38,7 +38,7 @@ namespace HouseholdBudgeter.Models
                 return false;
             }
           
-            var memberOfHouseHold = DbContext.HouseHoldUsers.Any(p => p.HouserholdId == id && p.UserId == userId);
+            var memberOfHouseHold = DbContext.HouseHoldUsers.Any(p => p.HouseHoldId == id && p.UserId == userId);
             if (memberOfHouseHold)
             {
                 return true;

@@ -27,12 +27,18 @@ namespace HouseholdBudgeter.Controllers
         }
 
         [HttpPost]
-        [Route("CreateCategory/{id:int}")]
-        public IHttpActionResult CreateCategory(int id, CreateCategoryViewModel formData)
+        [Route("Create/{id:int}")]
+        public IHttpActionResult Create(int id, CreateCategoryViewModel formData)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
+            }
+
+            var IsHouseHoldExit = Validation.IsHouseHoldExist(id);
+            if (!IsHouseHoldExit)
+            {
+                return BadRequest("Sorry, The householdId does not exist on the database");
             }
 
             var userId = User.Identity.GetUserId();
@@ -55,8 +61,8 @@ namespace HouseholdBudgeter.Controllers
         }
 
         [HttpPut]
-        [Route("UpdateCategory/{id:int}")]
-        public IHttpActionResult UpdateCategory (int id, UpdaateCategoryViewModel formData)
+        [Route("Update/{id:int}")]
+        public IHttpActionResult Update(int id, UpdaateCategoryViewModel formData)
         {
             if(!ModelState.IsValid)
             {
@@ -92,9 +98,9 @@ namespace HouseholdBudgeter.Controllers
             return Ok("The category was updated successfully!");
         }
 
-        [HttpPost]
-        [Route("DeleteCategory/{id:int}")]
-        public IHttpActionResult DeleteCategory (int id, DeleteCategoryViewModel formData) 
+        [HttpDelete]
+        [Route("Delete/{id:int}")]
+        public IHttpActionResult Delete(int id, DeleteCategoryViewModel formData) 
         {
             if (!ModelState.IsValid)
             {
@@ -128,14 +134,9 @@ namespace HouseholdBudgeter.Controllers
         }
 
         [HttpGet]
-        [Route("GetAllCategoryOfHouseHold/{id:int}")]
-        public IHttpActionResult GetAllCategoryOfHouseHold(int id)
+        [Route("GetAllCategory/{id:int}")]
+        public IHttpActionResult GetAllCategory(int id)
         {
-            if(!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             var IsHouseHoldExit = Validation.IsHouseHoldExist(id);
             if (!IsHouseHoldExit)
             {

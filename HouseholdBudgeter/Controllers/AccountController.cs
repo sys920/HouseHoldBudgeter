@@ -34,7 +34,6 @@ namespace HouseholdBudgeter.Controllers
             CustomEmailService = new CustomEmailService();
         }
 
-
         public AccountController(ApplicationUserManager userManager,
             ISecureDataFormat<AuthenticationTicket> accessTokenFormat)
         {
