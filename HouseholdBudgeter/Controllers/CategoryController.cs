@@ -17,13 +17,13 @@ namespace HouseholdBudgeter.Controllers
     public class CategoryController : ApiController
     {
         private ApplicationDbContext DbContext { get; set; }
-        private CheckUser CheckUser { get; set; }
+        private Validation Validation { get; set; }
         
 
         public CategoryController()
         {
             DbContext = new ApplicationDbContext();
-            CheckUser = new CheckUser();
+            Validation = new Validation();
         }
 
         [HttpPost]
@@ -36,7 +36,7 @@ namespace HouseholdBudgeter.Controllers
             }
 
             var userId = User.Identity.GetUserId();
-            var IsUserOnwerOfHouseHold = CheckUser.IsOwnerOfHouseHold(id, userId);
+            var IsUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);
             if (!IsUserOnwerOfHouseHold)
             {
                 return BadRequest("You are not the owner of this houseHolde");
@@ -63,11 +63,23 @@ namespace HouseholdBudgeter.Controllers
                 return BadRequest(ModelState);
             }
 
+            var IsHouseHoldExit = Validation.IsHouseHoldExist(id);
+            if (!IsHouseHoldExit)
+            {
+                return BadRequest("Sorry, Household does not exist on the database");
+            }
+
             var userId = User.Identity.GetUserId();
-            var IsUserOnwerOfHouseHold = CheckUser.IsOwnerOfHouseHold(id, userId);           
+            var IsUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);           
             if (!IsUserOnwerOfHouseHold)
             {
                 return BadRequest("You are not the owner of this houseHolde");
+            }
+
+            var IsCategoryExist = Validation.IsCategoryExist(id, formData.CategoryId);            
+            if (!IsCategoryExist)
+            {
+                return BadRequest("Sorry, The category doesn't match to the database!");
             }
 
             var model = DbContext.Categories.FirstOrDefault(p => p.Id == formData.CategoryId && p.HouseHoldId == id);
@@ -89,11 +101,23 @@ namespace HouseholdBudgeter.Controllers
                 return BadRequest(ModelState);
             }
 
+            var IsHouseHoldExit = Validation.IsHouseHoldExist(id);
+            if (!IsHouseHoldExit)
+            {
+                return BadRequest("Sorry, Household does not exist on the database");
+            }
+
             var userId = User.Identity.GetUserId();
-            var IsUserOnwerOfHouseHold = CheckUser.IsOwnerOfHouseHold(id, userId);
+            var IsUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);
             if (!IsUserOnwerOfHouseHold)
             {
                 return BadRequest("You are not the owner of this houseHolde");
+            }
+
+            var IsCategoryExist = Validation.IsCategoryExist(id, formData.CategoryId);
+            if (!IsCategoryExist)
+            {
+                return BadRequest("Sorry, The category doesn't match to the database!");
             }
 
             var model = DbContext.Categories.FirstOrDefault(p => p.Id == formData.CategoryId && p.HouseHoldId == id);
@@ -112,9 +136,15 @@ namespace HouseholdBudgeter.Controllers
                 return BadRequest(ModelState);
             }
 
+            var IsHouseHoldExit = Validation.IsHouseHoldExist(id);
+            if (!IsHouseHoldExit)
+            {
+                return BadRequest("Sorry, Household does not exist on the database");
+            }
+
             var userId = User.Identity.GetUserId();
-            var IsUserOnwerOfHouseHold = CheckUser.IsOwnerOfHouseHold(id, userId);
-            var IsUserMemberOfHouseHold = CheckUser.IsMemberOfHouseHold(id, userId);
+            var IsUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);
+            var IsUserMemberOfHouseHold = Validation.IsMemberOfHouseHold(id, userId);
             
             if(!(IsUserOnwerOfHouseHold || IsUserMemberOfHouseHold))
             {

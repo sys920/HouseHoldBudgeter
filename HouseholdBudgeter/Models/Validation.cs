@@ -5,18 +5,18 @@ using System.Web.Mvc;
 
 namespace HouseholdBudgeter.Models
 {
-    public class CheckUser
+    public class Validation
     {
         private ApplicationDbContext DbContext { get; set; }
        
-        public CheckUser()
+        public Validation()
         {
             DbContext = new ApplicationDbContext();           
         }  
 
-       public bool IsOwnerOfHouseHold (int? id, string userId)
+        public bool IsOwnerOfHouseHold (int? id, string userId)
         {
-            if (id == null)
+            if (id == null || userId == null)
             {
                 return false;
             }
@@ -31,10 +31,9 @@ namespace HouseholdBudgeter.Models
                 return false;
             }            
         }
-
         public bool IsMemberOfHouseHold (int? id, string userId)
         {
-            if (id == null)
+            if (id == null || userId == null)
             {
                 return false;
             }
@@ -49,5 +48,43 @@ namespace HouseholdBudgeter.Models
                 return false;
             }
         }
+        public bool IsHouseHoldExist(int? id)
+        {
+
+            if (id == null)
+            {
+                return false;
+            }
+
+            var result = DbContext.HouseHolds.Any(p => p.Id == id);
+            if (result)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+        public bool IsCategoryExist(int? id, int? categoryId)
+        {
+
+            if (id == null || categoryId == null)
+            {
+                return false;
+            }
+
+            var result = DbContext.Categories.Any(p => p.Id == categoryId && p.HouseHoldId == id);
+            if (result)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+            
+        }                
     }
 }
