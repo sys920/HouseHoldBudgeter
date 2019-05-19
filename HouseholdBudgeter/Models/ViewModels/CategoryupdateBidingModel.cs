@@ -6,7 +6,7 @@ using System.Web;
 
 namespace HouseholdBudgeter.Models.ViewModels
 {
-    public class UpdaateCategoryViewModel
+    public class CategoryUpdateBidingModel
     {
         [Required]
         public int CategoryId { get; set; }

@@ -6,9 +6,8 @@ using System.Web;
 
 namespace HouseholdBudgeter.Models.ViewModels
 {
-    public class CreateHouseholdViewModel
-    {
-        [Required]
+    public class CategoryBindingModel
+    {   [Required]
         public string Name { get; set; }
         [Required]
         public string Description { get; set; }

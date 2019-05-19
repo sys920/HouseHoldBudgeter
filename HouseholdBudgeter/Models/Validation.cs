@@ -57,6 +57,7 @@ namespace HouseholdBudgeter.Models
             }
 
             var result = DbContext.HouseHolds.Any(p => p.Id == id);
+
             if (result)
             {
                 return true;

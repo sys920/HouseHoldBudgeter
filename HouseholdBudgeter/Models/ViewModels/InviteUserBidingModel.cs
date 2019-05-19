@@ -6,9 +6,10 @@ using System.Web;
 
 namespace HouseholdBudgeter.Models.ViewModels
 {
-    public class HouseHoldUserViewModel
+    public class InviteUserBidingModel
     {
-        public string UserId { get; set; }
-        public string UserEmail { get; set; }
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
     }
 }

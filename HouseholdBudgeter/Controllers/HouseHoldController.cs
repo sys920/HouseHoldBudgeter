@@ -30,38 +30,48 @@ namespace HouseholdBudgeter.Models
 
         [HttpPost]
         [Route("Create")]
-        public IHttpActionResult Create(CreateHouseholdViewModel formData)
+        public IHttpActionResult Create(HouseholdBindingModel formData)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
+            var userId = User.Identity.GetUserId();
+
             var houseHold = new HouseHold();
+
             houseHold.Name = formData.Name;
-            houseHold.Desrcipton = formData.Description;
+            houseHold.Description = formData.Description;
             houseHold.Created = DateTime.Now;
-            houseHold.OwnerId = User.Identity.GetUserId();
-            houseHold.OwnerId = HttpContext.Current.User.Identity.GetUserId();
+            houseHold.OwnerId = userId;
+           
             DbContext.HouseHolds.Add(houseHold);
             DbContext.SaveChanges();
 
-            var model = new HouseHoldUser();
-            model.HouseHoldId = houseHold.Id;
-            model.UserId = houseHold.OwnerId;
-            DbContext.HouseHoldUsers.Add(model);
+            var houseHoldUser = new HouseHoldUser();
+            houseHoldUser.HouseHoldId = houseHold.Id;
+            houseHoldUser.UserId = houseHold.OwnerId;
+            DbContext.HouseHoldUsers.Add(houseHoldUser);
             DbContext.SaveChanges();
 
-            return Ok("HouseHold was Created sucessfully!");
+            var model = new HouseHoldViewModel();
+            model.Id = houseHold.Id;
+            model.Name = houseHold.Name;
+            model.Description = houseHold.Description;
+
+            return Ok(model);
         }
+
         [HttpPut]
         [Route("Update/{id:int}")]
-        public IHttpActionResult Update(int id, CreateHouseholdViewModel formData)
+        public IHttpActionResult Update(int id, HouseholdBindingModel formData)
         {
             var IsHouseHoldExit = Validation.IsHouseHoldExist(id);
             if (!IsHouseHoldExit)
             {
-                return BadRequest("Sorry, The householdId does not exist on the database");
+                ModelState.AddModelError("HouserHoldId", "Sorry, The household does not exist on the database");
+                return BadRequest(ModelState);
             }
 
             if (!ModelState.IsValid)
@@ -69,57 +79,65 @@ namespace HouseholdBudgeter.Models
                 return BadRequest(ModelState);
             }
             var userId = User.Identity.GetUserId();
-            var IsUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);
-            if (!IsUserOnwerOfHouseHold)
+            var isUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);
+            if (!isUserOnwerOfHouseHold)
             {
-                return BadRequest("Sorry, You are not the owner of this houseHold");
+                ModelState.AddModelError("UserId", "Sorry, You are not the owner of this houseHold");
+                return BadRequest(ModelState);
             }
 
             var houseHold = DbContext.HouseHolds.FirstOrDefault(p => p.Id == id); 
             houseHold.Name = formData.Name;
-            houseHold.Desrcipton = formData.Description;
+            houseHold.Description = formData.Description;
             houseHold.Updated = DateTime.Now;
 
             DbContext.SaveChanges();
 
-            return Ok("The household was updated Successfully");
+            var model = new HouseHoldViewModel();
+            model.Id = houseHold.Id;
+            model.Name = houseHold.Name;
+            model.Description = houseHold.Description;
+
+            return Ok(model);
         }
 
         [HttpPost]
         [Route("InviteUser/{id:int}")]
-        public IHttpActionResult InviteUser(int id, InviteUserByEmailViewModel formData)
+        public IHttpActionResult InviteUser(int id, InviteUserBidingModel formData)
         {
-            var IsHouseHoldExit = Validation.IsHouseHoldExist(id);
-            if (!IsHouseHoldExit)
-            {
-                return BadRequest("Sorry, The household does not exist on the database");
-            }
-
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var userId = User.Identity.GetUserId();
-            var IsUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);
-            if (!IsUserOnwerOfHouseHold)
+            var isHouseHoldExit = Validation.IsHouseHoldExist(id);
+            if (!isHouseHoldExit)
             {
-                return BadRequest("Sorry, you are not the owner of this houseHold");
+                ModelState.AddModelError("HouserHoldId", "Sorry, The household does not exist on the database");
+                return BadRequest(ModelState);
+            }                       
+
+            var userId = User.Identity.GetUserId();
+            var isUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);
+            if (!isUserOnwerOfHouseHold)
+            {
+                ModelState.AddModelError("UserId", "Sorry, you are not the owner of this houseHold");
+                return BadRequest(ModelState);
             }                        
 
             var isUserRegistered = DbContext.Users.Any(p => p.Email == formData.Email);
             if (!isUserRegistered)
             {
-                return BadRequest("User email is not registered yet.");
+                ModelState.AddModelError("UserInvite", "This Email is registered yet");
+                return BadRequest(ModelState);
             }
-
 
             var invitationExist = DbContext.Invitations.Any(p => p.HouseHoldId == id && p.UserEmail == formData.Email);
             if (invitationExist)
             {
-                return BadRequest("Already, You had invited this email");
+                ModelState.AddModelError("UserInvite", "This Email was on the list of invitation already");
+                return BadRequest(ModelState);
             }
-
 
             var invitation = new Invitation();
             invitation.UserEmail = formData.Email;
@@ -137,17 +155,18 @@ namespace HouseholdBudgeter.Models
             message.Body = "HouseHold Name : " + houseHold.Name + ", HouseHold ID : " + houseHold.Id;
             CustomEmailService.Sending(message);
 
-            return Ok("Your invitaion was sent successfully!");
+            return Ok();
         }
 
         [HttpGet]
         [Route("AcceptInvitaion/{id:int}")]
         public IHttpActionResult AcceptInvitaion(int id)
         {
-            var IsHouseHoldExit = Validation.IsHouseHoldExist(id);
-            if (!IsHouseHoldExit)
+            var isHouseHoldExit = Validation.IsHouseHoldExist(id);
+            if (!isHouseHoldExit)
             {
-                return BadRequest("Sorry, The household does not exist on the database");
+                ModelState.AddModelError("HouserHoldId", "Sorry, The household does not exist on the database");
+                return BadRequest(ModelState);
             }
 
             if (!ModelState.IsValid)
@@ -161,17 +180,20 @@ namespace HouseholdBudgeter.Models
             var invitationExist = DbContext.Invitations.Any(p => p.HouseHoldId == id && p.UserEmail == userEmail);
             if (!invitationExist)
             {
-                return BadRequest("Sorry, No invitation to this houseHold");
+                ModelState.AddModelError("UserInvite", "Sorry, User was not invited to this houseHold");
+                return BadRequest(ModelState);
             }
 
             var invitation = DbContext.Invitations.FirstOrDefault(p => p.HouseHoldId == id && p.UserEmail == userEmail);
 
-            var IsUserMemberOfHouseHold = Validation.IsMemberOfHouseHold(id, userId);
-            if (IsUserMemberOfHouseHold)
+            var isUserMemberOfHouseHold = Validation.IsMemberOfHouseHold(id, userId);
+            if (isUserMemberOfHouseHold)
             {               
                 DbContext.Invitations.Remove(invitation);
                 DbContext.SaveChanges();
-                return BadRequest("You are already the member of this houseHold!");
+
+                ModelState.AddModelError("UserId", "You are the member of this houseHold");
+                return BadRequest(ModelState);              
             }
 
             var model = new HouseHoldUser();
@@ -182,7 +204,7 @@ namespace HouseholdBudgeter.Models
             DbContext.Invitations.Remove(invitation);
             DbContext.SaveChanges();
 
-            return Ok("Thank joining this houserHold");
+            return Ok();
         }
 
         [HttpGet]
@@ -192,22 +214,24 @@ namespace HouseholdBudgeter.Models
             var IsHouseHoldExit = Validation.IsHouseHoldExist(id);
             if (!IsHouseHoldExit)
             {
-                return BadRequest("Sorry, The HouseholdId does not exist on the database");
+                ModelState.AddModelError("HouserHoldId", "Sorry, The household does not exist on the database");
+                return BadRequest(ModelState);
             }
 
             var userId = User.Identity.GetUserId();
             var IsUserMemberOfHouseHold = Validation.IsMemberOfHouseHold(id, userId);
             if (!IsUserMemberOfHouseHold)
             {
-                return BadRequest("Sorry, You are not the member of this houseHold");
+                ModelState.AddModelError("UserId", "Sorry, you are not the member of this houseHold");
+                return BadRequest(ModelState);
             }
 
-            var model = DbContext.HouseHoldUsers.Where(p => p.HouseHoldId == id).Select(p => new HouseHoldUserViewModel {
+            var models = DbContext.HouseHoldUsers.Where(p => p.HouseHoldId == id).Select(p => new HouseHoldUserViewModel {
               UserEmail = p.User.Email,
               UserId = p.User.Id
               }).ToList();
 
-            return Ok(model);
+            return Ok(models);
         }
 
         [HttpDelete]
@@ -217,26 +241,29 @@ namespace HouseholdBudgeter.Models
             var IsHouseHoldExit = Validation.IsHouseHoldExist(id);
             if (!IsHouseHoldExit)
             {
-                return BadRequest("Sorry, HouseholdId does not exist on the database");
+                ModelState.AddModelError("HouserHoldId", "Sorry, The household does not exist on the database");
+                return BadRequest(ModelState);
             }
 
             var userId = User.Identity.GetUserId();
             var IsUserMemberOfHouseHold = Validation.IsMemberOfHouseHold(id, userId);
             if (!IsUserMemberOfHouseHold)
             {
-                return BadRequest("Sorry, You are not the member of this houseHold");
+                ModelState.AddModelError("UserId", "Sorry, you are not the member of this houseHold");
+                return BadRequest(ModelState);
             }
 
             var IsUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);
             if (IsUserOnwerOfHouseHold)
             {
-                return BadRequest("Sorry, the owner of this houseHold can not leave!");
+                ModelState.AddModelError("UserId", "Sorry, you are not the owner of this houseHold");
+                return BadRequest(ModelState);
             }
 
             var user = DbContext.HouseHoldUsers.FirstOrDefault(p => p.HouseHoldId == id && p.UserId == userId);
             DbContext.HouseHoldUsers.Remove(user);
             DbContext.SaveChanges();
-            return Ok("Bye, You are not a member of this houseHold anymore!");
+            return Ok();
         }
 
         [HttpDelete]
@@ -246,20 +273,22 @@ namespace HouseholdBudgeter.Models
             var IsHouseHoldExit = Validation.IsHouseHoldExist(id);
             if(!IsHouseHoldExit)
             {
-                return BadRequest("Sorry, The householdId does not exist on the database");
+                ModelState.AddModelError("HouserHoldId", "Sorry, The household does not exist on the database");
+                return BadRequest(ModelState);
             }
             var userId = User.Identity.GetUserId();
             var IsUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);
             if (!IsUserOnwerOfHouseHold)
             {
-                return BadRequest("Sorry, You are not the owner of this houseHold");
+                ModelState.AddModelError("UserId", "Sorry, you are not the owner of this houseHold");
+                return BadRequest(ModelState);
             }
            
             var houseHold = DbContext.HouseHolds.FirstOrDefault(p => p.Id == id && p.OwnerId == userId);
             DbContext.HouseHolds.Remove(houseHold);         
                        
             DbContext.SaveChanges();
-            return Ok("This houseHold was deleted !");
+            return Ok();
         }       
     }
 }

@@ -6,10 +6,9 @@ using System.Web;
 
 namespace HouseholdBudgeter.Models.ViewModels
 {
-    public class InviteUserByEmailViewModel
+    public class CategoryDeleteBidingModel
     {
         [Required]
-        [EmailAddress]
-        public string Email { get; set; }
+        public int CategoryId { get; set; }
     }
 }

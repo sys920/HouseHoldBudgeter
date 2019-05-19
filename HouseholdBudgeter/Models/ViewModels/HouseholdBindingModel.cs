@@ -6,9 +6,11 @@ using System.Web;
 
 namespace HouseholdBudgeter.Models.ViewModels
 {
-    public class DeleteCategoryViewModel
+    public class HouseholdBindingModel
     {
         [Required]
-        public int CategoryId { get; set; }
+        public string Name { get; set; }
+        [Required]
+        public string Description { get; set; }
     }
 }

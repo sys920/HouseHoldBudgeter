@@ -9,7 +9,7 @@ namespace HouseholdBudgeter.Models.Domain
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public string Desrcipton { get; set; }
+        public string Description { get; set; }
         public DateTime Created { get; set; }
         public DateTime? Updated { get; set; }
         
@@ -18,13 +18,13 @@ namespace HouseholdBudgeter.Models.Domain
 
         public virtual List<Invitation> Invitations { get; set; }
       
-        public virtual List<ApplicationUser> HouseHoldUsers { get; set; }
+        public virtual List<HouseHoldUser> HouseHoldUsers { get; set; }
 
         public virtual List<Category> Categories { get; set; }
         public HouseHold ()
         {
             Invitations = new List<Invitation>();
-            HouseHoldUsers = new List<ApplicationUser>();
+            HouseHoldUsers = new List<HouseHoldUser>();
             Categories = new List<Category>();
         }        
     }

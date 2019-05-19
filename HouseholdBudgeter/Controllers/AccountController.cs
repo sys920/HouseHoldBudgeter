@@ -352,7 +352,7 @@ namespace HouseholdBudgeter.Controllers
                 return GetErrorResult(result);
             }
 
-            return Ok("Register success");
+            return Ok();
         }
 
 
