@@ -41,11 +41,21 @@ namespace HouseholdBudgeter.Models
         {
         }
 
-        public DbSet<HouseHold> HouseHolds { get; set; }
-        public DbSet<Invitation> Invitations { get; set; }
-        public DbSet<HouseHoldUser> HouseHoldUsers { get; set; }
-
+        public DbSet<HouseHold>HouseHolds { get; set; }
+        public DbSet<Invitation>Invitations { get; set; }
+        public DbSet<HouseHoldUser>HouseHoldUsers { get; set; }
         public DbSet<Category>Categories { get; set; }
+        public DbSet<BankAccount>BankAccounts { get; set; }
+        public DbSet<Transaction>Transactions { get; set; }
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<HouseHold>()
+                .HasMany(p => p.Categories)
+                .WithRequired(q => q.HouseHold)
+                .WillCascadeOnDelete(false);
+        }
 
         public static ApplicationDbContext Create()
         {

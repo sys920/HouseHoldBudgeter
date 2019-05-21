@@ -86,6 +86,28 @@ namespace HouseholdBudgeter.Models
                 return false;
             }
             
-        }                
+        }
+
+        public bool IsBankAccountExist(int? id, int? bankAccountId)
+        {
+
+            if (id == null || bankAccountId == null)
+            {
+                return false;
+            }
+
+            var result = DbContext.BankAccounts.Any(p => p.Id == bankAccountId && p.HouseHoldId == id);
+            if (result)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+
+        
     }
 }

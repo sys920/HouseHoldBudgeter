@@ -285,7 +285,13 @@ namespace HouseholdBudgeter.Models
             }
            
             var houseHold = DbContext.HouseHolds.FirstOrDefault(p => p.Id == id && p.OwnerId == userId);
-            DbContext.HouseHolds.Remove(houseHold);         
+            DbContext.HouseHolds.Remove(houseHold);
+
+            var categories = DbContext.Categories.Where(p => p.HouseHoldId == id).ToList();            
+            foreach(var ele in categories)
+            {
+                DbContext.Categories.Remove(ele);
+            }
                        
             DbContext.SaveChanges();
             return Ok();

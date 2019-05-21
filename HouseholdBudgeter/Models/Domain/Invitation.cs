@@ -11,6 +11,5 @@ namespace HouseholdBudgeter.Models.Domain
         public virtual HouseHold HouserHold { get; set; }
         public int HouseHoldId { get; set;  }
         public string UserEmail { get; set; }
-
     }
 }
