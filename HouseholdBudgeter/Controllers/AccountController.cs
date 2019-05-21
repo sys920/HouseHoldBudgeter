@@ -135,7 +135,7 @@ namespace HouseholdBudgeter.Controllers
                 return GetErrorResult(result);
             }
 
-            return Ok("Password has changed successfully!");
+            return Ok();
         }
 
         // POST api/Account/SetPassword
@@ -165,7 +165,7 @@ namespace HouseholdBudgeter.Controllers
                 return GetErrorResult(result);
             }
 
-            return Ok("Password was set sucessfully!");
+            return Ok();
         }        
 
         // POST api/Account/AddExternalLogin
@@ -368,7 +368,8 @@ namespace HouseholdBudgeter.Controllers
                 if (user == null )
                 {
                     // Don't reveal that the user does not exist or is not confirmed
-                    return BadRequest("Email is not vaild");                    
+                    return NotFound();
+
                 }
 
                 // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
@@ -384,11 +385,11 @@ namespace HouseholdBudgeter.Controllers
 
                 CustomEmailService.Sending(message);
 
-                return Ok("The authentification Code was sented, Check you email");
+                return Ok();
             }
 
             // If we got this far, something failed, redisplay form
-            return BadRequest("Something wrong");
+            return BadRequest(ModelState);
         }
 
 

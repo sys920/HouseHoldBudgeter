@@ -256,7 +256,7 @@ namespace HouseholdBudgeter.Models
             var IsUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);
             if (IsUserOnwerOfHouseHold)
             {
-                ModelState.AddModelError("UserId", "Sorry, you are not the owner of this houseHold");
+                ModelState.AddModelError("UserId", "Sorry, you can not leave this houseHold because you are the owner of this");
                 return BadRequest(ModelState);
             }
 
