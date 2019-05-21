@@ -87,7 +87,6 @@ namespace HouseholdBudgeter.Models
             }
             
         }
-
         public bool IsBankAccountExist(int? id, int? bankAccountId)
         {
 
@@ -106,8 +105,6 @@ namespace HouseholdBudgeter.Models
                 return false;
             }
 
-        }
-
-        
+        }        
     }
 }

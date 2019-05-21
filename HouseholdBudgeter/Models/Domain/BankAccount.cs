@@ -13,7 +13,9 @@ namespace HouseholdBudgeter.Models.Domain
        
         public DateTime Created { get; set; }
         public DateTime? Updated { get; set; }
-        public Decimal Balance { get; set; }
+
+        public Decimal  Balance { get; set; }
+
         public virtual HouseHold HouseHold { get; set; }
         public int HouseHoldId { get; set; }  
 
