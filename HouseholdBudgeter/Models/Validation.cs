@@ -105,6 +105,44 @@ namespace HouseholdBudgeter.Models
                 return false;
             }
 
-        }        
+        }
+        public bool IsTransactionExist(int? bankAccountId, int? transactionId)
+        {
+
+            if (bankAccountId == null || transactionId == null)
+            {
+                return false;
+            }
+
+            var result = DbContext.Transactions.Any(p => p.Id == transactionId && p.BankAccountId == bankAccountId);
+            if (result)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+
+        public bool IsOwnerOfTransaction(int? transactionId, string userId)
+        {
+            if (transactionId == null || userId == null)
+            {
+                return false;
+            }
+
+            var ownerOfTransaction = DbContext.Transactions.Any(p => p.Id == transactionId && p.OwnerId == userId);
+            if (ownerOfTransaction)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
     }
 }

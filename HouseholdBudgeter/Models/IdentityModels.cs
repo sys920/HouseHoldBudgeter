@@ -14,10 +14,13 @@ namespace HouseholdBudgeter.Models
     public class ApplicationUser : IdentityUser
     {
         public virtual List<HouseHold> HouseHolds { get; set; }
+        public virtual List<Transaction> Transactions { get; set; }
+
 
         public ApplicationUser()
         {
             HouseHolds = new List<HouseHold>();
+            Transactions = new List<Transaction>();
         }
 
         public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<ApplicationUser> manager, string authenticationType)
