@@ -256,33 +256,46 @@ namespace HouseholdBudgeter.Controllers
             return Ok();
         }
 
-
         [HttpGet]
         [Route("GetAll/{id:int}")]
         public IHttpActionResult GetAll(int id)
         {
-           
             var userId = User.Identity.GetUserId();
+            var bankAccount = DbContext.BankAccounts.FirstOrDefault(p => p.Id == id);
 
-            var isMemberOfHouseHold = Validation.IsMemberOfHouseHold(id, userId);
+            if(bankAccount == null)
+            {
+                ModelState.AddModelError("BankAccountId", "Sorry, The bankAccount does't exit");
+                return BadRequest(ModelState);
+            }                      
+           
+            var isMemberOfHouseHold = Validation.IsMemberOfHouseHold(bankAccount.HouseHoldId, userId);
             if (!isMemberOfHouseHold)
             {
                 ModelState.AddModelError("UserId", "Sorry, you are not the member of this houseHold");
                 return BadRequest(ModelState);
             }
 
-            var transactions = DbContext.BankAccounts.Where(p => p.HouseHoldId == id).Select(p => new BankAccountListViewModel
+            var transactions = DbContext.BankAccounts.Where(p => p.Id == id).Select(p => new BankAccountListViewModel
             {
                 BankAccountId = p.Id,
                 Name = p.Name,
                 Description = p.Description,
+                Created = p.Created,
+                Updated = p.Updated,
+                Balance =p.Balance,
                 Transaction = p.Transactions.Select( x => new TransactionListViewModel {
                     TransactionId = x.Id,
                     Name =x.Name,
-                    Description = x.Description
+                    Description = x.Description,
+                    Date = x.Date,
+                    Amount =x.Amount,
+                    Category = x.Category.Name,
+                    Created = x.Created,
+                    Updated =x.Updated,
+                    Void = x.Void,
                 }).ToList()
-            }).ToList();
-                                    
+            }).ToList();                                    
 
             return Ok(transactions);
         }

@@ -11,9 +11,10 @@ namespace HouseholdBudgeter.Models.ViewModels.Transaction
         public string Name { get; set; }
         public string Description { get; set; }
         public DateTime Date { get; set; }
-        public int CategoryId { get; set; }
+        public string Category { get; set; }
         public Decimal Amount { get; set; }
         public DateTime Created { get; set; }
         public DateTime? Updated { get; set; }
+        public bool Void { get; set; }
     }
 }
