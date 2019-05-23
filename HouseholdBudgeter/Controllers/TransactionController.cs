@@ -1,5 +1,6 @@
 ﻿using HouseholdBudgeter.Models;
 using HouseholdBudgeter.Models.Domain;
+using HouseholdBudgeter.Models.ViewModels.BankAccount;
 using HouseholdBudgeter.Models.ViewModels.Transaction;
 using Microsoft.AspNet.Identity;
 using System;
@@ -239,7 +240,7 @@ namespace HouseholdBudgeter.Controllers
             var isOwnerfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);
             if (!(isOwnerfHouseHold || isOwnerOfTransaction))
             {
-                ModelState.AddModelError("TransactionId", "You don't have permission to delete");
+                ModelState.AddModelError("TransactionId", "You don't have permission to Void");
                 return BadRequest(ModelState);
             }
 
@@ -253,6 +254,37 @@ namespace HouseholdBudgeter.Controllers
             CalcurateBalance(transaction.BankAccountId, amount);
 
             return Ok();
+        }
+
+
+        [HttpGet]
+        [Route("GetAll/{id:int}")]
+        public IHttpActionResult GetAll(int id)
+        {
+           
+            var userId = User.Identity.GetUserId();
+
+            var isMemberOfHouseHold = Validation.IsMemberOfHouseHold(id, userId);
+            if (!isMemberOfHouseHold)
+            {
+                ModelState.AddModelError("UserId", "Sorry, you are not the member of this houseHold");
+                return BadRequest(ModelState);
+            }
+
+            var transactions = DbContext.BankAccounts.Where(p => p.HouseHoldId == id).Select(p => new BankAccountListViewModel
+            {
+                BankAccountId = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                Transaction = p.Transactions.Select( x => new TransactionListViewModel {
+                    TransactionId = x.Id,
+                    Name =x.Name,
+                    Description = x.Description
+                }).ToList()
+            }).ToList();
+                                    
+
+            return Ok(transactions);
         }
 
         private void CalcurateBalance(int bankAccountId, decimal amount)
