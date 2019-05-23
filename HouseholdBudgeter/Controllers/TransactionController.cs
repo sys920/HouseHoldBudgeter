@@ -18,10 +18,12 @@ namespace HouseholdBudgeter.Controllers
     {
         private ApplicationDbContext DbContext;
         private Validation Validation;
+      
         public TransactionController()
         {
             DbContext = new ApplicationDbContext();
             Validation = new Validation();
+           
         }
 
         [HttpPost]
@@ -65,8 +67,6 @@ namespace HouseholdBudgeter.Controllers
             transaction.OwnerId = userId;
             DbContext.Transactions.Add(transaction);            
             DbContext.SaveChanges();
-
-            CalcurateBalance(transaction.BankAccountId, transaction.Amount);
 
             var model = new TransactionViewModel();
            
@@ -137,9 +137,7 @@ namespace HouseholdBudgeter.Controllers
             transaction.CategoryId = formData.CategoryId;
             transaction.Amount = formData.Amount;
             transaction.Updated = DateTime.Now;           
-            DbContext.SaveChanges();
-
-            CalcurateBalance(transaction.BankAccountId, amount);
+            DbContext.SaveChanges();           
 
             var model = new TransactionViewModel();
             model.BankAccountId = transaction.BankAccountId;
@@ -198,9 +196,7 @@ namespace HouseholdBudgeter.Controllers
             var amount = -(transaction.Amount);
 
             DbContext.Transactions.Remove(transaction);
-            DbContext.SaveChanges();
-
-            CalcurateBalance(transaction.BankAccountId, amount);           
+            DbContext.SaveChanges();           
 
             return Ok();
         }
@@ -249,10 +245,7 @@ namespace HouseholdBudgeter.Controllers
 
             transaction.Void = true;
            
-            DbContext.SaveChanges();
-
-            CalcurateBalance(transaction.BankAccountId, amount);
-
+            DbContext.SaveChanges();          
             return Ok();
         }
 
@@ -300,12 +293,6 @@ namespace HouseholdBudgeter.Controllers
             return Ok(transactions);
         }
 
-        private void CalcurateBalance(int bankAccountId, decimal amount)
-        {
-            var bankAccount = DbContext.BankAccounts.FirstOrDefault(p => p.Id == bankAccountId);
-            bankAccount.Balance = bankAccount.Balance + amount;
-            DbContext.SaveChanges();
-        }
-
+        
     }
 }

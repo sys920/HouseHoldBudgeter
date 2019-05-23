@@ -1,4 +1,5 @@
-﻿using HouseholdBudgeter.Models.Domain;
+﻿using AutoMapper;
+using HouseholdBudgeter.Models.Domain;
 using HouseholdBudgeter.Models.ViewModels;
 using Microsoft.AspNet.Identity;
 using System;
@@ -20,6 +21,7 @@ namespace HouseholdBudgeter.Models
         private ApplicationDbContext DbContext { get; set; }
         private CustomEmailService CustomEmailService { get; set; }
         private Validation Validation { get; set; }
+         
 
         public HouseHoldController()
         {
@@ -37,29 +39,21 @@ namespace HouseholdBudgeter.Models
                 return BadRequest(ModelState);
             }
 
-            var userId = User.Identity.GetUserId();
-
-            var houseHold = new HouseHold();
-
-            houseHold.Name = formData.Name;
-            houseHold.Description = formData.Description;
+            var userId = User.Identity.GetUserId();            
+            var houseHold = Mapper.Map<HouseHold>(formData);
             houseHold.Created = DateTime.Now;
-            houseHold.OwnerId = userId;
-           
+            houseHold.OwnerId = User.Identity.GetUserId();
+
             DbContext.HouseHolds.Add(houseHold);
             DbContext.SaveChanges();
 
-            var houseHoldUser = new HouseHoldUser();
+           var houseHoldUser = new HouseHoldUser();
             houseHoldUser.HouseHoldId = houseHold.Id;
             houseHoldUser.UserId = houseHold.OwnerId;
             DbContext.HouseHoldUsers.Add(houseHoldUser);
             DbContext.SaveChanges();
 
-            var model = new HouseHoldViewModel();
-            model.Id = houseHold.Id;
-            model.Name = houseHold.Name;
-            model.Description = houseHold.Description;
-
+            var model = Mapper.Map<HouseHoldViewModel>(houseHold);
             return Ok(model);
         }
 

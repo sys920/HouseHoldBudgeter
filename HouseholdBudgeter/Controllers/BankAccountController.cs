@@ -155,6 +155,49 @@ namespace HouseholdBudgeter.Controllers
             }).ToList();
 
             return Ok(models);
-        } 
+        }
+
+        [HttpGet]
+        [Route("CalcurateBalance/{id:int}")]
+        public IHttpActionResult CalcurateBalance(int id)
+        {
+            var userId = User.Identity.GetUserId();
+            var bankAccount = DbContext.BankAccounts.FirstOrDefault(p => p.Id == id);
+
+            if (bankAccount == null)
+            {
+                ModelState.AddModelError("BankAccountId", "Sorry, The bankAccount does't exit");
+                return BadRequest(ModelState);
+            }
+
+            var isOwnerOfHouseHold = Validation.IsOwnerOfHouseHold(bankAccount.HouseHoldId, userId);
+            if (!isOwnerOfHouseHold)
+            {
+                ModelState.AddModelError("UserId", "Sorry, you are not the owner of this bankAccount");
+                return BadRequest(ModelState);
+            }
+
+            var listOfAmount = DbContext.Transactions.Where(p => p.BankAccountId == id && p.Void == false).Select(p => p.Amount).ToList();
+
+            decimal balance = 0;
+
+            foreach (var ele in listOfAmount)
+            {
+                balance = balance + ele;
+            }
+
+            bankAccount.Balance = balance;
+            DbContext.SaveChanges();
+
+
+            var model = new BankAccountViewModel();
+            model.Id = bankAccount.Id;
+            model.Name = bankAccount.Name;
+            model.Description = bankAccount.Description;
+            model.Created = bankAccount.Created;
+            model.Balance = bankAccount.Balance;
+
+            return Ok(model);
+        }
     }
 }

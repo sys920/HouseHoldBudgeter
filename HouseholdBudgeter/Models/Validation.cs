@@ -105,7 +105,7 @@ namespace HouseholdBudgeter.Models
                 return false;
             }
 
-        }
+        }        
         public bool IsTransactionExist(int? bankAccountId, int? transactionId)
         {
 
