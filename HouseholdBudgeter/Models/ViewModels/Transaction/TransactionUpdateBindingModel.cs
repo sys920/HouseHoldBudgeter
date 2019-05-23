@@ -7,9 +7,7 @@ using System.Web;
 namespace HouseholdBudgeter.Models.ViewModels.Transaction
 {
     public class TransactionUpdateBindingModel
-    {
-        [Required]
-        public int BankAccountId { get; set; }
+    {       
         [Required]
         public int TransactionId { get; set; }
         [Required]

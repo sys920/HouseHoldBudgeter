@@ -9,8 +9,6 @@ namespace HouseholdBudgeter.Models.ViewModels.Transaction
     public class TransactionBindingModel
     {
         [Required]
-        public int BankAccountId { get; set; }
-        [Required]
         public string Name { get; set; }
         public string Description { get; set; }
         [Required]
