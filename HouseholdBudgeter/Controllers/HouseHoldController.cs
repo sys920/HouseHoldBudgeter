@@ -47,7 +47,7 @@ namespace HouseholdBudgeter.Models
             DbContext.HouseHolds.Add(houseHold);
             DbContext.SaveChanges();
 
-           var houseHoldUser = new HouseHoldUser();
+            var houseHoldUser = new HouseHoldUser();
             houseHoldUser.HouseHoldId = houseHold.Id;
             houseHoldUser.UserId = houseHold.OwnerId;
             DbContext.HouseHoldUsers.Add(houseHoldUser);

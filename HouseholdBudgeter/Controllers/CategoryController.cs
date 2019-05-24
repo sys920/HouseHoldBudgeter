@@ -9,6 +9,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using AutoMapper;
+
 
 namespace HouseholdBudgeter.Controllers
 {
@@ -26,15 +28,15 @@ namespace HouseholdBudgeter.Controllers
         }
 
         [HttpPost]
-        [Route("Create/{id:int}")]
-        public IHttpActionResult Create(int id, CategoryBindingModel formData)
+        [Route("Create")]
+        public IHttpActionResult Create(CategoryBindingModel formData)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var isHouseHoldExit = Validation.IsHouseHoldExist(id);
+            var isHouseHoldExit = Validation.IsHouseHoldExist(formData.HouseHoldId);
             if (!isHouseHoldExit)
             {
                 ModelState.AddModelError("HouserHoldId", "Sorry, The household does not exist on the database");
@@ -42,28 +44,20 @@ namespace HouseholdBudgeter.Controllers
             }
 
             var userId = User.Identity.GetUserId();
-            var IsUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);
+            var IsUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(formData.HouseHoldId, userId);
             if (!IsUserOnwerOfHouseHold)
             {
                 ModelState.AddModelError("UserId", "Sorry, you are not the owner of this houseHold");
                 return BadRequest(ModelState);
-            }
+            }           
 
-            var category = new Category();
-            category.Name = formData.Name;
-            category.Description = formData.Description;
-            category.Created = DateTime.Now;
-            category.HouseHoldId = id;
+            var category = Mapper.Map<Category>(formData);           
+            category.Created = DateTime.Now;        
 
             DbContext.Categories.Add(category);
             DbContext.SaveChanges();
-
-            var model = new CategoryViewModel();
-            model.Id = category.Id;
-            model.Name = category.Name;
-            model.Description = category.Description;
-            model.Created = category.Created;
-            model.Updated = category.Updated;
+           
+            var model = Mapper.Map<CategoryViewModel>(category);           
 
             return Ok(model);
         }
@@ -77,77 +71,36 @@ namespace HouseholdBudgeter.Controllers
                 return BadRequest(ModelState);
             }
 
-            var isHouseHoldExit = Validation.IsHouseHoldExist(id);
-            if (!isHouseHoldExit)
-            {
-                ModelState.AddModelError("HouserHoldId", "Sorry, The household does not exist on the database");
-                return BadRequest(ModelState);
-            }
-
             var userId = User.Identity.GetUserId();
-            var isUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);           
-            if (!isUserOnwerOfHouseHold)
+            var category = DbContext.Categories.FirstOrDefault(p => p.Id == id && p.HouseHold.OwnerId == userId);           
+            if (category == null)
             {
-                ModelState.AddModelError("UserId", "Sorry, you are not the owner of this houseHold");
+                ModelState.AddModelError("CategoryId", "Sorry, This category does not exist");
                 return BadRequest(ModelState);
             }
 
-            var isCategoryExist = Validation.IsCategoryExist(id, formData.CategoryId);            
-            if (!isCategoryExist)
-            {
-                ModelState.AddModelError("CategoryId", "This category doesn't exist");
-                return BadRequest(ModelState);
-            }
-
-            var category = DbContext.Categories.FirstOrDefault(p => p.Id == formData.CategoryId && p.HouseHoldId == id);
-            category.Name = formData.Name;
-            category.Description = formData.Description;
-            category.Updated = DateTime.Now;
+            Mapper.Map(formData, category);
+            category.Updated = DateTime.Now;            
 
             DbContext.SaveChanges();
 
-            var model = new CategoryViewModel();
-            model.Id = category.Id;
-            model.Name = category.Name;
-            model.Description = category.Description;
-            model.Created = category.Created;
-            model.Updated = category.Updated;
+            var model = Mapper.Map<CategoryViewModel>(category);           
 
             return Ok(model);
         }
 
         [HttpDelete]
         [Route("Delete/{id:int}")]
-        public IHttpActionResult Delete(int id, CategoryDeleteBidingModel formData) 
+        public IHttpActionResult Delete(int id) 
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var isHouseHoldExit = Validation.IsHouseHoldExist(id);
-            if (!isHouseHoldExit)
-            {
-                ModelState.AddModelError("HouserHoldId", "Sorry, The household does not exist on the database");
-                return BadRequest(ModelState);
-            }
-
             var userId = User.Identity.GetUserId();
-            var IsUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);
-            if (!IsUserOnwerOfHouseHold)
+            var category = DbContext.Categories.FirstOrDefault(p => p.Id == id && p.HouseHold.OwnerId == userId);
+            if (category == null)
             {
-                ModelState.AddModelError("UserId", "Sorry, you are not the owner of this houseHold");
+                ModelState.AddModelError("CategoryId", "Sorry, This category does not exist");
                 return BadRequest(ModelState);
             }
 
-            var isCategoryExist = Validation.IsCategoryExist(id, formData.CategoryId);
-            if (!isCategoryExist)
-            {
-                ModelState.AddModelError("CategoryId", "This category doesn't exist");
-                return BadRequest(ModelState);                
-            }
-
-            var category = DbContext.Categories.FirstOrDefault(p => p.Id == formData.CategoryId && p.HouseHoldId == id);
             DbContext.Categories.Remove(category);
             DbContext.SaveChanges();
 
@@ -158,14 +111,8 @@ namespace HouseholdBudgeter.Controllers
         [Route("GetAllCategory/{id:int}")]
         public IHttpActionResult GetAllCategory(int id)
         {
-            var isHouseHoldExit = Validation.IsHouseHoldExist(id);
-            if (!isHouseHoldExit)
-            {
-                ModelState.AddModelError("HouserHoldId", "Sorry, The household does not exist on the database");
-                return BadRequest(ModelState);
-            }
-
             var userId = User.Identity.GetUserId();
+          
             var isUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);
             var isUserMemberOfHouseHold = Validation.IsMemberOfHouseHold(id, userId);
             

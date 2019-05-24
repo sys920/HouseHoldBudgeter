@@ -7,9 +7,7 @@ using System.Web;
 namespace HouseholdBudgeter.Models.ViewModels
 {
     public class CategoryUpdateBidingModel
-    {
-        [Required]
-        public int CategoryId { get; set; }
+    {      
         [Required]
         public string Name { get; set; }
         [Required]

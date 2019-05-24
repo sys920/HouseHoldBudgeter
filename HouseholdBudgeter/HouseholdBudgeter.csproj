@@ -248,7 +248,6 @@
     <Compile Include="Models\ViewModels\Category\CategoryBindingModel.cs" />
     <Compile Include="Models\ViewModels\Category\CategoryViewModel.cs" />
     <Compile Include="Models\ViewModels\HouseHold\HouseholdBindingModel.cs" />
-    <Compile Include="Models\ViewModels\Category\CategoryDeleteBidingModel.cs" />
     <Compile Include="Models\ViewModels\HouseHold\HouseHoldUserViewModel.cs" />
     <Compile Include="Models\ViewModels\HouseHold\HouseHoldViewModel.cs" />
     <Compile Include="Models\ViewModels\HouseHold\InviteUserBidingModel.cs" />

@@ -1,4 +1,5 @@
-﻿using HouseholdBudgeter.Models;
+﻿using AutoMapper;
+using HouseholdBudgeter.Models;
 using HouseholdBudgeter.Models.Domain;
 using HouseholdBudgeter.Models.ViewModels.BankAccount;
 using HouseholdBudgeter.Models.ViewModels.Transaction;
@@ -27,8 +28,8 @@ namespace HouseholdBudgeter.Controllers
         }
 
         [HttpPost]
-        [Route("Create/{id:int}")]
-        public IHttpActionResult Create(int id, TransactionBindingModel formData)
+        [Route("Create")]
+        public IHttpActionResult Create(TransactionBindingModel formData)
         {
             if(!ModelState.IsValid)
             {
@@ -36,7 +37,7 @@ namespace HouseholdBudgeter.Controllers
             }
 
             var userId = User.Identity.GetUserId();
-            var bankAccount = DbContext.BankAccounts.FirstOrDefault(p => p.Id == id);           
+            var bankAccount = DbContext.BankAccounts.FirstOrDefault(p => p.Id == formData.BankAccountId);           
             if (bankAccount == null)
             {
                 ModelState.AddModelError("BankAccountId", "This bankAccount doesn't exist");
@@ -56,32 +57,15 @@ namespace HouseholdBudgeter.Controllers
                 ModelState.AddModelError("CategoryId", "This category doesn't exist");
                 return BadRequest(ModelState);
             }
-
-            var transaction = new Transaction();
-                        
-            transaction.Name = formData.Name;
-            transaction.Description = formData.Description;
-            transaction.Date = formData.Date;
-            transaction.CategoryId = formData.CategoryId;
-            transaction.Amount = formData.Amount;
-            transaction.BankAccountId = id;
-
+            
+            var transaction = Mapper.Map<Transaction>(formData);           
             transaction.Created = DateTime.Now;
             transaction.OwnerId = userId;
+
             DbContext.Transactions.Add(transaction);            
             DbContext.SaveChanges();
 
-            var model = new TransactionViewModel();
-           
-            model.BankAccountId = transaction.BankAccountId;
-            model.TransactionId = transaction.Id;
-            model.Name = transaction.Name;
-            model.Description = transaction.Description;
-            model.Date = transaction.Date;
-            model.CategoryId = transaction.CategoryId;
-            model.Amount =  transaction.Amount;
-            model.Created = transaction.Created;
-
+            var model = Mapper.Map<TransactionViewModel>(transaction);
             return Ok(model);
         }
 
@@ -93,24 +77,25 @@ namespace HouseholdBudgeter.Controllers
             {
                 return BadRequest(ModelState);
             }
-
-            var userId = User.Identity.GetUserId();
-            var bankAccount = DbContext.BankAccounts.FirstOrDefault(p => p.Id == id);
-
-            if (bankAccount == null)
+           
+            var transaction = DbContext.Transactions.FirstOrDefault(p => p.Id == id);            
+            if(transaction == null)
             {
-                ModelState.AddModelError("BankAccountId", "This bankAccount doesn't exist");
+                ModelState.AddModelError("TransactionId", "This transactionId doesn't exist");
                 return BadRequest(ModelState);
             }
-                        
+
+            var userId = User.Identity.GetUserId();
+            var bankAccount = DbContext.BankAccounts.FirstOrDefault(p => p.Id == transaction.BankAccountId);
+
             var isCategoryExist = Validation.IsCategoryExist(bankAccount.HouseHoldId, formData.CategoryId);
             if (!isCategoryExist)
             {
                 ModelState.AddModelError("CategoryId", "This category doesn't exist");
                 return BadRequest(ModelState);
             }
-            
-            var isOwnerOfTransaction = Validation.IsOwnerOfTransaction(formData.TransactionId, userId);
+
+            var isOwnerOfTransaction = Validation.IsOwnerOfTransaction(id, userId);
             var isOwnerfHouseHold = Validation.IsOwnerOfHouseHold(bankAccount.HouseHoldId, userId);
             if (!(isOwnerfHouseHold || isOwnerOfTransaction))
             {
@@ -119,57 +104,43 @@ namespace HouseholdBudgeter.Controllers
 
             }
 
-            var transaction = DbContext.Transactions.FirstOrDefault(p => p.Id == formData.TransactionId && p.BankAccountId == bankAccount.Id);
-
-            var amount = formData.Amount - transaction.Amount;
-            transaction.Name = formData.Name;
-            transaction.Description = formData.Description;
-            transaction.Date = formData.Date;
-            transaction.CategoryId = formData.CategoryId;
-            transaction.Amount = formData.Amount;
+            Mapper.Map(formData, transaction);
             transaction.Updated = DateTime.Now;           
-            DbContext.SaveChanges();           
+            DbContext.SaveChanges();
 
-            var model = new TransactionViewModel();
-            model.BankAccountId = transaction.BankAccountId;
-            model.TransactionId = transaction.Id;
-            model.Name = transaction.Name;
-            model.Description = transaction.Description;
-            model.Date = transaction.Date;
-            model.CategoryId = transaction.CategoryId;
-            model.Amount = transaction.Amount;
-            model.Created = transaction.Created;
-            model.Updated = transaction.Updated;
+            var model = Mapper.Map<TransactionViewModel>(transaction);                      
+         
 
             return Ok(model);
         }
 
         [HttpDelete]
         [Route("Delete/{id:int}")]
-        public IHttpActionResult Delete(int id, TransactionDeleteBindingModel formData)
+        public IHttpActionResult Delete(int id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var userId = User.Identity.GetUserId();
-            var bankAccount = DbContext.BankAccounts.FirstOrDefault(p => p.Id == id);
-            if (bankAccount == null)
+            var transaction = DbContext.Transactions.FirstOrDefault(p => p.Id == id);
+            if (transaction == null)
             {
-                ModelState.AddModelError("BankAccountId", "This bankAccount doesn't exist");
+                ModelState.AddModelError("TransactionId", "This transactionId doesn't exist");
                 return BadRequest(ModelState);
             }
-            
-            var isOwnerOfTransaction = Validation.IsOwnerOfTransaction(formData.TransactionId, userId);
+
+            var userId = User.Identity.GetUserId();
+            var bankAccount = DbContext.BankAccounts.FirstOrDefault(p => p.Id == transaction.BankAccountId);
+                       
+
+            var isOwnerOfTransaction = Validation.IsOwnerOfTransaction(id, userId);
             var isOwnerfHouseHold = Validation.IsOwnerOfHouseHold(bankAccount.HouseHoldId, userId);
             if (!(isOwnerfHouseHold || isOwnerOfTransaction))
             {
                 ModelState.AddModelError("TransactionId", "You don't have permission to Update");
                 return BadRequest(ModelState);
-            }
-
-            var transaction = DbContext.Transactions.FirstOrDefault(p => p.Id == formData.TransactionId && p.BankAccountId == id);
+            }          
            
             DbContext.Transactions.Remove(transaction);
             DbContext.SaveChanges();           
@@ -179,49 +150,35 @@ namespace HouseholdBudgeter.Controllers
 
         [HttpPut]
         [Route("Void/{id:int}")]
-        public IHttpActionResult Void(int id, TransactionDeleteBindingModel formData)
+        public IHttpActionResult Void(int id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
+            var transaction = DbContext.Transactions.FirstOrDefault(p => p.Id == id);
+            if (transaction == null)
+            {
+                ModelState.AddModelError("TransactionId", "This transactionId doesn't exist");
+                return BadRequest(ModelState);
+            }
+
             var userId = User.Identity.GetUserId();
-            var bankAccount = DbContext.BankAccounts.FirstOrDefault(p => p.Id == id);           
-            if (bankAccount == null)
-            {
-                ModelState.AddModelError("BankAccountId", "This bankAccount doesn't exist");
-                return BadRequest(ModelState);
-            }
+            var bankAccount = DbContext.BankAccounts.FirstOrDefault(p => p.Id == transaction.BankAccountId);
 
-            var isMemberOfHouseHold = Validation.IsMemberOfHouseHold(bankAccount.HouseHoldId, userId);
-            if (!isMemberOfHouseHold)
-            {
-                ModelState.AddModelError("UserId", "Sorry, you are not the member of this houseHold");
-                return BadRequest(ModelState);
-            }            
-
-            var isTransactionExist = Validation.IsTransactionExist(id, formData.TransactionId);
-            if (!isTransactionExist)
-            {
-                ModelState.AddModelError("TransactionId", "This Transaction doesn't exist");
-                return BadRequest(ModelState);
-            }
-
-            var isOwnerOfTransaction = Validation.IsOwnerOfTransaction(formData.TransactionId, userId);
+            var isOwnerOfTransaction = Validation.IsOwnerOfTransaction(id, userId);
             var isOwnerfHouseHold = Validation.IsOwnerOfHouseHold(bankAccount.HouseHoldId, userId);
             if (!(isOwnerfHouseHold || isOwnerOfTransaction))
             {
-                ModelState.AddModelError("TransactionId", "You don't have permission to Void");
+                ModelState.AddModelError("TransactionId", "You don't have permission to Update");
                 return BadRequest(ModelState);
             }
-
-            var transaction = DbContext.Transactions.FirstOrDefault(p => p.Id == formData.TransactionId && p.BankAccountId == id);
-            var amount = -(transaction.Amount);
-
+          
             transaction.Void = true;
            
-            DbContext.SaveChanges();          
+            DbContext.SaveChanges();   
+            
             return Ok();
         }
 

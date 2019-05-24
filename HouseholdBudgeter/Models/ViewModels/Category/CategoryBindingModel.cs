@@ -8,6 +8,8 @@ namespace HouseholdBudgeter.Models.ViewModels
 {
     public class CategoryBindingModel
     {   [Required]
+        public int HouseHoldId { get; set; } 
+        [Required]
         public string Name { get; set; }
         [Required]
         public string Description { get; set; }

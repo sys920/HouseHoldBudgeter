@@ -8,8 +8,7 @@ namespace HouseholdBudgeter.Models.ViewModels.Transaction
 {
     public class TransactionUpdateBindingModel
     {       
-        [Required]
-        public int TransactionId { get; set; }
+
         [Required]
         public string Name { get; set; }
         public string Description { get; set; }
