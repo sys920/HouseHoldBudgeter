@@ -1,4 +1,5 @@
-﻿using HouseholdBudgeter.Models;
+﻿using AutoMapper;
+using HouseholdBudgeter.Models;
 using HouseholdBudgeter.Models.Domain;
 using HouseholdBudgeter.Models.ViewModels.BankAccount;
 using Microsoft.AspNet.Identity;
@@ -24,8 +25,8 @@ namespace HouseholdBudgeter.Controllers
         }
 
         [HttpPost]
-        [Route("Create/{id:int}")]
-        public IHttpActionResult Create(int id, BankAccountBindigModel formData)
+        [Route("Create")]
+        public IHttpActionResult Create(BankAccountBindigModel formData)
         {                
             if(!ModelState.IsValid)
             {
@@ -33,30 +34,22 @@ namespace HouseholdBudgeter.Controllers
             }
             var userId = User.Identity.GetUserId();
 
-            var isUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);
+            var isUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(formData.HouseHoldId, userId);
             if (!isUserOnwerOfHouseHold)
             {
                 ModelState.AddModelError("UserId", "Sorry, You are not the owner of this houseHold");
                 return BadRequest(ModelState);
             }
 
-            var bankAccount = new BankAccount();
-            bankAccount.Name = formData.Name;
-            bankAccount.Description = formData.Description;
-            bankAccount.Created = DateTime.Now;
-            bankAccount.HouseHoldId = id;
+           
+            var bankAccount = Mapper.Map<BankAccount>(formData);
+            bankAccount.Created = DateTime.Now;       
             bankAccount.Balance = 0;
 
             DbContext.BankAccounts.Add(bankAccount);
             DbContext.SaveChanges();
 
-            var model = new BankAccountViewModel();
-            model.Id = bankAccount.Id;
-            model.Name = bankAccount.Name;
-            model.Description = bankAccount.Description;
-            model.Created = bankAccount.Created;
-            model.Balance = bankAccount.Balance;
-
+            var model = Mapper.Map<BankAccountViewModel>(bankAccount);
             return Ok(model);
         }
 
@@ -69,61 +62,47 @@ namespace HouseholdBudgeter.Controllers
                 return BadRequest(ModelState);
             }
             var userId = User.Identity.GetUserId();
-
-            var isUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);
-            if (!isUserOnwerOfHouseHold)
-            {
-                ModelState.AddModelError("UserId", "Sorry, You are not the owner of this houseHold");
-                return BadRequest(ModelState);
-            }
-          
-            var isBankAccountExist = Validation.IsBankAccountExist(id, formData.BankAccountId);
-            if (!isBankAccountExist)
+            var bankAccount = DbContext.BankAccounts.FirstOrDefault(p => p.Id == id);
+            if (bankAccount == null)
             {
                 ModelState.AddModelError("BankAccountId", "This bankAccount doesn't exist");
                 return BadRequest(ModelState);
             }
 
-            var bankAccount = DbContext.BankAccounts.FirstOrDefault(p => p.Id == formData.BankAccountId && p.HouseHoldId == id);
-            bankAccount.Name = formData.Name;
-            bankAccount.Description = formData.Description;
+            var isUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(bankAccount.HouseHoldId, userId);
+            if (!isUserOnwerOfHouseHold)
+            {
+                ModelState.AddModelError("UserId", "Sorry, You are not the owner of this houseHold");
+                return BadRequest(ModelState);
+            }
+
+            Mapper.Map(formData, bankAccount); 
             bankAccount.Updated = DateTime.Now;                
             DbContext.SaveChanges();
 
-            var model = new BankAccountViewModel();
-            model.Id = bankAccount.Id;
-            model.Name = bankAccount.Name;
-            model.Description = bankAccount.Description;
-            model.Balance = bankAccount.Balance;
+            var model = Mapper.Map<BankAccountViewModel>(bankAccount);           
 
             return Ok(model);
         }
 
         [HttpDelete]
         [Route("Delete/{id:int}")]
-        public IHttpActionResult Delete(int id, BankAccountDeleteBindigModel formData)
+        public IHttpActionResult Delete(int id)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
             var userId = User.Identity.GetUserId();
-
-            var isUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);
-            if (!isUserOnwerOfHouseHold)
-            {
-                ModelState.AddModelError("UserId", "Sorry, You are not the owner of this houseHold");
-                return BadRequest(ModelState);
-            }
-
-            var isBankAccountExist = Validation.IsBankAccountExist(id, formData.BankAccountId);
-            if (!isBankAccountExist)
+            var bankAccount = DbContext.BankAccounts.FirstOrDefault(p => p.Id == id);
+            if (bankAccount == null)
             {
                 ModelState.AddModelError("BankAccountId", "This bankAccount doesn't exist");
                 return BadRequest(ModelState);
             }
 
-            var bankAccount = DbContext.BankAccounts.FirstOrDefault(p => p.Id == formData.BankAccountId && p.HouseHoldId == id);
+            var isUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(bankAccount.HouseHoldId, userId);
+            if (!isUserOnwerOfHouseHold)
+            {
+                ModelState.AddModelError("UserId", "Sorry, You are not the owner of this houseHold");
+                return BadRequest(ModelState);
+            }           
 
             DbContext.BankAccounts.Remove(bankAccount);
             DbContext.SaveChanges();          
@@ -189,14 +168,7 @@ namespace HouseholdBudgeter.Controllers
             bankAccount.Balance = balance;
             DbContext.SaveChanges();
 
-
-            var model = new BankAccountViewModel();
-            model.Id = bankAccount.Id;
-            model.Name = bankAccount.Name;
-            model.Description = bankAccount.Description;
-            model.Created = bankAccount.Created;
-            model.Balance = bankAccount.Balance;
-
+            var model = Mapper.Map<BankAccountViewModel>(bankAccount);
             return Ok(model);
         }
     }

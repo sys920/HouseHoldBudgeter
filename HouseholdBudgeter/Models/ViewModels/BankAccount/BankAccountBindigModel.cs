@@ -8,7 +8,8 @@ namespace HouseholdBudgeter.Models.ViewModels.BankAccount
 {
     public class BankAccountBindigModel
     {        
-
+        [Required]
+        public int HouseHoldId { get; set; }
         [Required]
         public string Name { get; set; }
         [Required]

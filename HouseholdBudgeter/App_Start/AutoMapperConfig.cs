@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using HouseholdBudgeter.Models.Domain;
 using HouseholdBudgeter.Models.ViewModels;
+using HouseholdBudgeter.Models.ViewModels.BankAccount;
 using HouseholdBudgeter.Models.ViewModels.Transaction;
 using System;
 using System.Collections.Generic;
@@ -23,8 +24,10 @@ namespace HouseholdBudgeter.App_Start
                 p.CreateMap<Transaction, TransactionBindingModel>().ReverseMap();
                 p.CreateMap<Transaction, TransactionViewModel>().ReverseMap();
                 p.CreateMap<Transaction, TransactionUpdateBindingModel>().ReverseMap();
-              
-
+                p.CreateMap<BankAccount, BankAccountBindigModel>().ReverseMap();
+                p.CreateMap<BankAccount, BankAccountViewModel>().ReverseMap();
+                p.CreateMap<BankAccount, BankAccountUpdateBindigModel>().ReverseMap();
+                
             }); 
         }
     }

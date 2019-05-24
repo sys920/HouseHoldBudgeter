@@ -7,10 +7,7 @@ using System.Web;
 namespace HouseholdBudgeter.Models.ViewModels.BankAccount
 {
     public class BankAccountUpdateBindigModel
-    {
-        
-        [Required]
-        public int BankAccountId { get; set; }
+    { 
         [Required]
         public string Name { get; set; }
         [Required]
