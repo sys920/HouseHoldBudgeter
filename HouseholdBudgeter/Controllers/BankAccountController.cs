@@ -40,7 +40,6 @@ namespace HouseholdBudgeter.Controllers
                 ModelState.AddModelError("UserId", "Sorry, You are not the owner of this houseHold");
                 return BadRequest(ModelState);
             }
-
            
             var bankAccount = Mapper.Map<BankAccount>(formData);
             bankAccount.Created = DateTime.Now;       
@@ -125,6 +124,7 @@ namespace HouseholdBudgeter.Controllers
 
             var models = DbContext.BankAccounts.Where(p => p.HouseHoldId == id).Select(p => new BankAccountViewModel
             {
+                HouseHoldId = p.HouseHoldId,
                 Id = p.Id,
                 Name = p.Name,
                 Description = p.Description,

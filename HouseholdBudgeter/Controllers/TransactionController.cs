@@ -18,13 +18,12 @@ namespace HouseholdBudgeter.Controllers
     public class TransactionController : ApiController
     {
         private ApplicationDbContext DbContext;
-        private Validation Validation;
+        private Validation Validation;        
       
         public TransactionController()
         {
             DbContext = new ApplicationDbContext();
-            Validation = new Validation();
-           
+            Validation = new Validation();           
         }
 
         [HttpPost]
@@ -66,6 +65,9 @@ namespace HouseholdBudgeter.Controllers
             DbContext.SaveChanges();
 
             var model = Mapper.Map<TransactionViewModel>(transaction);
+
+            CalcurateBalance(transaction.BankAccountId);
+
             return Ok(model);
         }
 
@@ -108,8 +110,9 @@ namespace HouseholdBudgeter.Controllers
             transaction.Updated = DateTime.Now;           
             DbContext.SaveChanges();
 
-            var model = Mapper.Map<TransactionViewModel>(transaction);                      
-         
+            var model = Mapper.Map<TransactionViewModel>(transaction);
+
+            CalcurateBalance(transaction.BankAccountId);
 
             return Ok(model);
         }
@@ -143,7 +146,9 @@ namespace HouseholdBudgeter.Controllers
             }          
            
             DbContext.Transactions.Remove(transaction);
-            DbContext.SaveChanges();           
+            DbContext.SaveChanges();
+
+            CalcurateBalance(transaction.BankAccountId);
 
             return Ok();
         }
@@ -177,8 +182,10 @@ namespace HouseholdBudgeter.Controllers
           
             transaction.Void = true;
            
-            DbContext.SaveChanges();   
-            
+            DbContext.SaveChanges();
+
+            CalcurateBalance(transaction.BankAccountId);
+
             return Ok();
         }
 
@@ -226,6 +233,21 @@ namespace HouseholdBudgeter.Controllers
             return Ok(transactions);
         }
 
-        
+        private void CalcurateBalance(int id)
+        {
+            var listOfTransactionAmount = DbContext.Transactions.Where(p => p.BankAccountId == id && p.Void == false).Select(p => p.Amount).ToList();
+
+            decimal balance = 0;
+
+            foreach (var ele in listOfTransactionAmount)
+            {
+                balance = balance + ele;
+            }
+
+            var bankAccount = DbContext.BankAccounts.FirstOrDefault(p => p.Id == id);
+            bankAccount.Balance = balance;
+
+            DbContext.SaveChanges();
+        }
     }
 }

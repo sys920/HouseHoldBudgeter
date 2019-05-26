@@ -20,8 +20,7 @@ namespace HouseholdBudgeter.Models
     {
         private ApplicationDbContext DbContext { get; set; }
         private CustomEmailService CustomEmailService { get; set; }
-        private Validation Validation { get; set; }
-         
+        private Validation Validation { get; set; }         
 
         public HouseHoldController()
         {

@@ -7,6 +7,7 @@ namespace HouseholdBudgeter.Models.ViewModels.BankAccount
 {
     public class BankAccountViewModel
     {
+        public int HouseHoldId { get; set; }
         public int Id { get; set; }
         public string Name { get; set; }
       

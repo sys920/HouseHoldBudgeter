@@ -72,10 +72,18 @@ namespace HouseholdBudgeter.Controllers
             }
 
             var userId = User.Identity.GetUserId();
-            var category = DbContext.Categories.FirstOrDefault(p => p.Id == id && p.HouseHold.OwnerId == userId);           
+            var category = DbContext.Categories.FirstOrDefault(p => p.Id == id);           
             if (category == null)
             {
                 ModelState.AddModelError("CategoryId", "Sorry, This category does not exist");
+                return BadRequest(ModelState);
+            }
+
+            
+            var IsUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(category.HouseHoldId, userId);
+            if (!IsUserOnwerOfHouseHold)
+            {
+                ModelState.AddModelError("UserId", "Sorry, you are not the owner of this houseHold");
                 return BadRequest(ModelState);
             }
 
@@ -94,10 +102,17 @@ namespace HouseholdBudgeter.Controllers
         public IHttpActionResult Delete(int id) 
         {
             var userId = User.Identity.GetUserId();
-            var category = DbContext.Categories.FirstOrDefault(p => p.Id == id && p.HouseHold.OwnerId == userId);
+            var category = DbContext.Categories.FirstOrDefault(p => p.Id == id);
             if (category == null)
             {
                 ModelState.AddModelError("CategoryId", "Sorry, This category does not exist");
+                return BadRequest(ModelState);
+            }
+           
+            var IsUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(category.HouseHoldId, userId);
+            if (!IsUserOnwerOfHouseHold)
+            {
+                ModelState.AddModelError("UserId", "Sorry, you are not the owner of this houseHold");
                 return BadRequest(ModelState);
             }
 
