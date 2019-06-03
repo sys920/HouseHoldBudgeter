@@ -125,7 +125,6 @@ namespace HouseholdBudgeter.Models
             }
 
         }
-
         public bool IsOwnerOfTransaction(int? transactionId, string userId)
         {
             if (transactionId == null || userId == null)

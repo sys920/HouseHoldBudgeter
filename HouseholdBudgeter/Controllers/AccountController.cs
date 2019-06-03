@@ -152,11 +152,12 @@ namespace HouseholdBudgeter.Controllers
 
             if(user ==null)
             {
-                return NotFound();
+                ModelState.AddModelError("", "This Email doesn't exist");
+                return BadRequest(ModelState);
             }
 
             UserManager<IdentityUser> userManager =  new UserManager<IdentityUser>(new UserStore<IdentityUser>());
-            userManager.RemovePassword(user.Id);
+            //userManager.RemovePassword(user.Id);
 
             IdentityResult result = await UserManager.ResetPasswordAsync(user.Id, model.Code, model.NewPassword);        
 
@@ -349,7 +350,8 @@ namespace HouseholdBudgeter.Controllers
 
             if (!result.Succeeded)
             {
-                return GetErrorResult(result);
+                ModelState.AddModelError("Account", "This Email is aready taken");
+                return BadRequest(ModelState);
             }
 
             return Ok();
@@ -368,7 +370,8 @@ namespace HouseholdBudgeter.Controllers
                 if (user == null )
                 {
                     // Don't reveal that the user does not exist or is not confirmed
-                    return NotFound();
+                    ModelState.AddModelError("", "This Email doesn't exist");
+                    return BadRequest(ModelState);
 
                 }
 

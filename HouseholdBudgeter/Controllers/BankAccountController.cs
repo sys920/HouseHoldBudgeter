@@ -158,7 +158,10 @@ namespace HouseholdBudgeter.Controllers
 
             var listOfAmount = DbContext.Transactions.Where(p => p.BankAccountId == id && p.Void == false).Select(p => p.Amount).ToList();
 
-            decimal balance = 0;
+            //var bankAccount.Balance = DbContext.Transactions.Where(p => p.BankAccountId == id && p.Void == false).Sum(p => p.Amount);
+
+            var balance = 0m;
+            //decimal balance = 0;
 
             foreach (var ele in listOfAmount)
             {

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using HouseholdBudgeter.Models.Domain;
 using HouseholdBudgeter.Models.ViewModels;
+using HouseholdBudgeter.Models.ViewModels.HouseHold;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
@@ -53,6 +54,64 @@ namespace HouseholdBudgeter.Models
             DbContext.SaveChanges();
 
             var model = Mapper.Map<HouseHoldViewModel>(houseHold);
+            return Ok(model);
+        }
+
+        [HttpGet]
+        [Route("GetAll")]
+        public IHttpActionResult GetAll()
+        {
+            var userId = User.Identity.GetUserId();
+
+            var models = DbContext.HouseHolds.Where(p => p.HouseHoldUsers.Any(x => x.UserId == userId)).Select(p => new HouseHoldListViewModel
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                Created = p.Created,
+                Updated = p.Updated,
+                IsOwner = DbContext.HouseHolds.Any(o => o.Id == p.Id && o.OwnerId == userId),
+
+            }).ToList();
+
+            return Ok(models);
+        }
+
+        [HttpGet]
+        [Route("GetByOwnerId/{id:int}")]
+        public IHttpActionResult GetByOwnerId(int id)
+        {
+            var userId = User.Identity.GetUserId();
+
+            var isUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(id, userId);
+            if (!isUserOnwerOfHouseHold)
+            {
+                ModelState.AddModelError("UserId", "Sorry, You are not the owner of this houseHold");
+                return BadRequest(ModelState);
+            }
+
+            var result = DbContext.HouseHolds.FirstOrDefault(p => p.Id == id);
+            var model = Mapper.Map<HouseHoldViewModel>(result);
+
+            return Ok(model);
+        }
+
+        [HttpGet]
+        [Route("GetById/{id:int}")]
+        public IHttpActionResult GetById(int id)
+        {
+            var userId = User.Identity.GetUserId();
+
+            var IsMemberOfHouseHold = Validation.IsMemberOfHouseHold(id, userId);
+            if (!IsMemberOfHouseHold)
+            {
+                ModelState.AddModelError("UserId", "Sorry, You are not the member of this houseHold");
+                return BadRequest(ModelState);
+            }
+
+            var result = DbContext.HouseHolds.FirstOrDefault(p => p.Id == id);
+            var model = Mapper.Map<HouseHoldDetailViewModel>(result);
+
             return Ok(model);
         }
 
@@ -149,6 +208,21 @@ namespace HouseholdBudgeter.Models
             CustomEmailService.Sending(message);
 
             return Ok();
+        }
+
+        [HttpGet]
+        [Route("GetAllInvitaion")]
+        public IHttpActionResult GetAllInvitaion()
+        {            
+            var userEmail = User.Identity.GetUserName();
+
+            var invitations = DbContext.Invitations.Where(p => p.UserEmail == userEmail).Select(p => new ListOfInvitation {
+            Id = p.HouseHoldId,
+            Name =p.HouserHold.Name,
+            Description = p.HouserHold.Description
+            }).ToList();                     
+
+            return Ok(invitations);
         }
 
         [HttpGet]

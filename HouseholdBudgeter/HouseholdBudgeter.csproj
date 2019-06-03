@@ -248,10 +248,13 @@
     <Compile Include="Models\ViewModels\Category\CategoryBindingModel.cs" />
     <Compile Include="Models\ViewModels\Category\CategoryViewModel.cs" />
     <Compile Include="Models\ViewModels\HouseHold\HouseholdBindingModel.cs" />
+    <Compile Include="Models\ViewModels\HouseHold\HouseHoldDetailViewModel.cs" />
+    <Compile Include="Models\ViewModels\HouseHold\HouseHoldListViewModel.cs" />
     <Compile Include="Models\ViewModels\HouseHold\HouseHoldUserViewModel.cs" />
     <Compile Include="Models\ViewModels\HouseHold\HouseHoldViewModel.cs" />
     <Compile Include="Models\ViewModels\HouseHold\InviteUserBidingModel.cs" />
     <Compile Include="Models\ViewModels\Category\CategoryUpdateBidingModel.cs" />
+    <Compile Include="Models\ViewModels\HouseHold\ListOfInvitation.cs" />
     <Compile Include="Models\ViewModels\Transaction\TransactionBindingModel.cs" />
     <Compile Include="Models\ViewModels\Transaction\TransactionDeleteBindingModel.cs" />
     <Compile Include="Models\ViewModels\Transaction\TransactionListViewModel.cs" />
