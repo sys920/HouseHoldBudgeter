@@ -180,7 +180,14 @@ namespace HouseholdBudgeter.Models
             var isUserRegistered = DbContext.Users.Any(p => p.Email == formData.Email);
             if (!isUserRegistered)
             {
-                ModelState.AddModelError("UserInvite", "This Email is registered yet");
+                ModelState.AddModelError("UserInvite", "This email is not registered yet");
+                return BadRequest(ModelState);
+            }
+
+            var isUserMemberOfHouseHold = DbContext.HouseHoldUsers.Any(p => p.Id == id &&  p.User.Email == formData.Email);
+            if (isUserMemberOfHouseHold)
+            {
+                ModelState.AddModelError("UserInvite", "This user(email) is already in this household");
                 return BadRequest(ModelState);
             }
 
