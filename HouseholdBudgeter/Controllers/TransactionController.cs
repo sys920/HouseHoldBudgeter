@@ -153,7 +153,7 @@ namespace HouseholdBudgeter.Controllers
             return Ok();
         }
 
-        [HttpPut]
+        [HttpGet]
         [Route("Void/{id:int}")]
         public IHttpActionResult Void(int id)
         {
@@ -221,6 +221,7 @@ namespace HouseholdBudgeter.Controllers
                 Updated = p.Updated,
                 Void = p.Void,
                 IsOwner = p.OwnerId == userId,
+                BankAccountId = p.BankAccountId,
             }).ToList();
                                              
 

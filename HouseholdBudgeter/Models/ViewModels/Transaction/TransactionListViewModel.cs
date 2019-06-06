@@ -18,5 +18,7 @@ namespace HouseholdBudgeter.Models.ViewModels.Transaction
         public bool Void { get; set; }
 
         public bool IsOwner { get; set; }
+
+        public int BankAccountId { get; set; }
     }
 }
