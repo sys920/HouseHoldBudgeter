@@ -372,6 +372,50 @@ namespace HouseholdBudgeter.Models
                        
             DbContext.SaveChanges();
             return Ok();
-        }       
+        }
+
+        [HttpGet]
+        [Route("GetHouseHoldDetail/{id:int}")]
+        public IHttpActionResult GetHouseHoldDetail(int id)
+        {
+            var userId = User.Identity.GetUserId();
+            var IsHouseHoldExit = Validation.IsHouseHoldExist(id);
+            if (!IsHouseHoldExit)
+            {
+                ModelState.AddModelError("HouserHoldId", "Sorry, The household does not exist on the database");
+                return BadRequest(ModelState);
+            }
+
+            var IsUserMemberOfHouseHold = Validation.IsMemberOfHouseHold(id, userId);
+            if (!IsUserMemberOfHouseHold)
+            {
+                ModelState.AddModelError("UserId", "Sorry, you are not the member of this houseHold");
+                return BadRequest(ModelState);
+            }
+            
+            var result = DbContext.HouseHolds.FirstOrDefault(p => p.Id == id);
+
+            var model = Mapper.Map<HouseHoldDetailViewModel>(result);
+            
+             model.bankAccountListForHouseHolds = DbContext.BankAccounts.Where(p => p.HouseHoldId == id).Select(p => new BankAccountListForHouseHold
+              {
+                BankAccountId = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                Created = p.Created,
+                Updated = p.Updated,        
+                Balance = p.Balance,
+                SumOfCategories = DbContext.Transactions.Where(x => x.BankAccountId == p.Id && x.Void == false).GroupBy(i => i.CategoryId).Select(i => new
+                SumOfCategory
+                {                  
+                    Total = i.Sum(s => s.Amount),
+                    Name = i.FirstOrDefault().Category.Name,                 
+                }).ToList()
+             }).ToList();
+
+
+            return Ok(model);
+        }
+
     }
 }

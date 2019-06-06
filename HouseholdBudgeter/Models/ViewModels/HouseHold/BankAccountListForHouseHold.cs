@@ -5,17 +5,17 @@ using System.Web;
 
 namespace HouseholdBudgeter.Models.ViewModels.HouseHold
 {
-    public class HouseHoldDetailViewModel
+    public class BankAccountListForHouseHold
     {
-        public int Id { get; set; }
+        public int BankAccountId { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
 
         public DateTime Created { get; set; }
         public DateTime? Updated { get; set; }
 
-        public bool IsOwner { get; set; }
+        public Decimal Balance { get; set; }
 
-        public List<BankAccountListForHouseHold> bankAccountListForHouseHolds { get; set; }
+        public List<SumOfCategory> SumOfCategories { get; set; }
     }
 }

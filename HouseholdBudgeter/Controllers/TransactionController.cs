@@ -252,7 +252,7 @@ namespace HouseholdBudgeter.Controllers
 
             return Ok(model);
         }
-
+                
         private void CalcurateBalance(int id)
         {
             var listOfTransactionAmount = DbContext.Transactions.Where(p => p.BankAccountId == id && p.Void == false).Select(p => p.Amount).ToList();
