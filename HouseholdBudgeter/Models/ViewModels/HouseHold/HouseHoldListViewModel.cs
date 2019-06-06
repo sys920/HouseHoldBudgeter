@@ -15,5 +15,9 @@ namespace HouseholdBudgeter.Models.ViewModels.HouseHold
         public DateTime? Updated { get; set; }
 
         public bool IsOwner { get; set; }
+
+        public int NumberOfMember { get; set; }
+        public int NumberOfCategory { get; set; }
+        public int NumberOfBankAccount { get; set; }
     }
 }

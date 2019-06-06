@@ -71,6 +71,9 @@ namespace HouseholdBudgeter.Models
                 Created = p.Created,
                 Updated = p.Updated,
                 IsOwner = DbContext.HouseHolds.Any(o => o.Id == p.Id && o.OwnerId == userId),
+                NumberOfMember = DbContext.HouseHoldUsers.Where(x => x.HouseHoldId == p.Id).Count(),
+                NumberOfCategory = DbContext.Categories.Where(x => x.HouseHoldId == p.Id).Count(),
+                NumberOfBankAccount = DbContext.BankAccounts.Where(x => x.HouseHoldId == p.Id).Count()
 
             }).ToList();
 
@@ -184,7 +187,7 @@ namespace HouseholdBudgeter.Models
                 return BadRequest(ModelState);
             }
 
-            var isUserMemberOfHouseHold = DbContext.HouseHoldUsers.Any(p => p.Id == id &&  p.User.Email == formData.Email);
+            var isUserMemberOfHouseHold = DbContext.HouseHoldUsers.Any(p => p.HouseHoldId == id &&  p.User.Email == formData.Email);
             if (isUserMemberOfHouseHold)
             {
                 ModelState.AddModelError("UserInvite", "This user(email) is already in this household");

@@ -131,9 +131,41 @@ namespace HouseholdBudgeter.Controllers
                 Created = p.Created,
                 Updated = p.Updated,
                 Balance =p.Balance,
-            }).ToList();
+                IsOwner =(p.HouseHold.Owner.Id == userId),
+                NumberOfTransaction = DbContext.Transactions.Where(x => x.BankAccountId == p.Id).Count(),
+
+        }).ToList();
 
             return Ok(models);
+        }
+
+        [HttpGet]
+        [Route("GetById/{id:int}")]
+        public IHttpActionResult GetById(int id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var userId = User.Identity.GetUserId();
+            var bankAccount = DbContext.BankAccounts.FirstOrDefault(p => p.Id == id);
+            if (bankAccount == null)
+            {
+                ModelState.AddModelError("CategoryId", "Sorry, This category does not exist");
+                return BadRequest(ModelState);
+            }
+
+            var IsUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(bankAccount.HouseHoldId, userId);
+            if (!IsUserOnwerOfHouseHold)
+            {
+                ModelState.AddModelError("UserId", "Sorry, you are not the owner of this houseHold");
+                return BadRequest(ModelState);
+            }
+
+            var model = Mapper.Map<BankAccountViewModel>(bankAccount);
+           
+            return Ok(model);
         }
 
         [HttpGet]

@@ -16,5 +16,7 @@ namespace HouseholdBudgeter.Models.ViewModels.Transaction
         public DateTime Created { get; set; }
         public DateTime? Updated { get; set; }
         public bool Void { get; set; }
+
+        public bool IsOwner { get; set; }
     }
 }

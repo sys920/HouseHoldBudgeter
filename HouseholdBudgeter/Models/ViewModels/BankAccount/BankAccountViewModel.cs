@@ -16,5 +16,9 @@ namespace HouseholdBudgeter.Models.ViewModels.BankAccount
         public DateTime Created { get; set; }
         public DateTime? Updated { get; set; }
         public Decimal Balance { get; set; }
+        
+        public bool IsOwner { get; set; }
+
+        public int NumberOfTransaction { get; set; }
     }
 }

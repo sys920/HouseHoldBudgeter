@@ -209,28 +209,47 @@ namespace HouseholdBudgeter.Controllers
                 return BadRequest(ModelState);
             }
 
-            var transactions = DbContext.BankAccounts.Where(p => p.Id == id).Select(p => new BankAccountListViewModel
+            var transactions = DbContext.Transactions.Where(p => p.BankAccountId == id).Select(p => new TransactionListViewModel
             {
-                BankAccountId = p.Id,
+                TransactionId = p.Id,
                 Name = p.Name,
                 Description = p.Description,
+                Date = p.Date,
+                Amount = p.Amount,
+                Category = p.Category.Name,
                 Created = p.Created,
                 Updated = p.Updated,
-                Balance =p.Balance,
-                Transaction = p.Transactions.Select( x => new TransactionListViewModel {
-                    TransactionId = x.Id,
-                    Name =x.Name,
-                    Description = x.Description,
-                    Date = x.Date,
-                    Amount =x.Amount,
-                    Category = x.Category.Name,
-                    Created = x.Created,
-                    Updated =x.Updated,
-                    Void = x.Void,
-                }).ToList()
-            }).ToList();                                    
+                Void = p.Void,
+                IsOwner = p.OwnerId == userId,
+            }).ToList();
+                                             
 
             return Ok(transactions);
+        }
+
+        [HttpGet]
+        [Route("GetById/{id:int}")]
+        public IHttpActionResult GetById(int id)
+        {
+            var userId = User.Identity.GetUserId();
+            var transaction = DbContext.Transactions.FirstOrDefault(p => p.Id == id);
+
+            if (transaction == null)
+            {
+                ModelState.AddModelError("TransactionId", "Sorry, The bankAccount does't exit");
+                return BadRequest(ModelState);
+            }
+
+            var IsOwnerOfTransaction = Validation.IsOwnerOfTransaction(transaction.Id, userId);
+            if (!IsOwnerOfTransaction)
+            {
+                ModelState.AddModelError("UserId", "Sorry, you are not the Owner of this transaction");
+                return BadRequest(ModelState);
+            }
+
+            var model = Mapper.Map<TransactionViewModel>(transaction);
+
+            return Ok(model);
         }
 
         private void CalcurateBalance(int id)

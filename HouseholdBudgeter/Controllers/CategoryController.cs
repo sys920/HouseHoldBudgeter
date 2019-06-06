@@ -62,6 +62,35 @@ namespace HouseholdBudgeter.Controllers
             return Ok(model);
         }
 
+        [HttpGet]
+        [Route("GetById/{id:int}")]
+        public IHttpActionResult GetById(int id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var userId = User.Identity.GetUserId();
+            var category = DbContext.Categories.FirstOrDefault(p => p.Id == id);
+            if (category == null)
+            {
+                ModelState.AddModelError("CategoryId", "Sorry, This category does not exist");
+                return BadRequest(ModelState);
+            }
+
+            var IsUserOnwerOfHouseHold = Validation.IsOwnerOfHouseHold(category.HouseHoldId, userId);
+            if (!IsUserOnwerOfHouseHold)
+            {
+                ModelState.AddModelError("UserId", "Sorry, you are not the owner of this houseHold");
+                return BadRequest(ModelState);
+            }          
+
+            var model = Mapper.Map<CategoryViewModel>(category);
+
+            return Ok(model);
+        }
+
         [HttpPut]
         [Route("Update/{id:int}")]
         public IHttpActionResult Update(int id, CategoryUpdateBidingModel formData)
@@ -143,7 +172,9 @@ namespace HouseholdBudgeter.Controllers
                 Name = p.Name,
                 Description = p.Description,
                 Created = p.Created,
-                Updated = p.Updated
+                Updated = p.Updated,
+                IsOwner = (p.HouseHold.Owner.Id == userId),
+                HouseHoldId = p.HouseHoldId,
             }).ToList();
 
             return Ok(models);
